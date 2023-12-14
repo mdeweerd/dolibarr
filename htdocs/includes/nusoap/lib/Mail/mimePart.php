@@ -603,10 +603,9 @@ class Mail_mimePart
         $escape = '=';
         $output = '';
 
-        while (list($idx, $line) = each($lines)) {
+        foreach ($lines as $idx => $line) {
             $newline = '';
             $i = 0;
-
             while (isset($line[$i])) {
                 $char = $line[$i];
                 $dec  = ord($char);
@@ -638,7 +637,8 @@ class Mail_mimePart
                     $newline  = '';
                 }
                 $newline .= $char;
-            } // end of for
+         }
+									// end of for
             $output .= $newline . $eol;
             unset($lines[$idx]);
         }
