@@ -270,6 +270,7 @@ class pdf_storm extends ModelePDFDeliveryOrder
 					$pdf->SetCompression(false);
 				}
 
+				// @phan-suppress-next-line PhanPluginSuspiciousParamOrder
 				$pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite); // Left, Top, Right
 
 
@@ -1009,6 +1010,7 @@ class pdf_storm extends ModelePDFDeliveryOrder
 		if ($reshook < 0) {
 			setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 		} elseif (empty($reshook)) {
+			// @phan-suppress-next-line PhanPluginSuspiciousParamOrderInternal
 			$this->cols = array_replace($this->cols, $hookmanager->resArray); // array_replace is used to preserve keys
 		} else {
 			$this->cols = $hookmanager->resArray;

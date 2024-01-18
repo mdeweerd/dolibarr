@@ -764,6 +764,7 @@ class Documents extends DolibarrApi
 
 			if (is_object($object)) {
 				if ($fetchbyid) {
+					// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 					$result = $object->fetch($ref);
 				} else {
 					$result = $object->fetch('', $ref);

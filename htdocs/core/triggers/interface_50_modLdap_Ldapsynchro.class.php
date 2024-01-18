@@ -233,6 +233,7 @@ class InterfaceLdapsynchro extends DolibarrTriggers
 							$userAccountControl -= 2;
 						}
 						$info['userAccountControl'] = $userAccountControl;
+						// @phan-suppress-next-line PhanPluginSuspiciousParamPosition
 						$resUpdate = $ldap->update($dn, $info, $user, $dn);
 						if ($resUpdate < 0) {
 							$this->error = "ErrorLDAP " . $ldap->error;
