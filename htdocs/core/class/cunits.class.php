@@ -87,7 +87,7 @@ class CUnits extends CommonDict
 		if (isset($this->unit_type)) {
 <<<<<<< HEAD
 			$this->active = (int) $this->unit_type;
-=======
+======= TODO
 			$this->unit_type = trim($this->unit_type);
 >>>>>>> develop
 		}

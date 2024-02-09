@@ -154,7 +154,7 @@ print '</div><div class="fichetwothirdright">';
 $limit = 10;
 <<<<<<< HEAD
 $sql  = "SELECT m.rowid, m.titre as title, m.nbemail, m.statut as status, m.date_creat, m.messtype";
-=======
+======= TODO
 $sql  = "SELECT m.rowid, m.titre as title, m.nbemail, m.statut as status, m.date_creat";
 >>>>>>> develop
 $sql .= " FROM ".MAIN_DB_PREFIX."mailing as m";
@@ -200,7 +200,7 @@ if ($result) {
 			print '<td class="center">'.dol_print_date($db->jdate($obj->date_creat), 'day').'</td>';
 <<<<<<< HEAD
 			print '<td class="center">'.($obj->nbemail ? (int) $obj->nbemail : "0").'</td>';
-=======
+======= TODO
 			print '<td class="center">'.($obj->nbemail ? $obj->nbemail : "0").'</td>';
 >>>>>>> develop
 			print '<td class="right">'.$mailstatic->LibStatut($obj->status, 5).'</td>';

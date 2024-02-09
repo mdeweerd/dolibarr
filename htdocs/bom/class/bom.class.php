@@ -1451,7 +1451,7 @@ class BOM extends CommonObject
 						}
 <<<<<<< HEAD
 						$line->unit_cost = (float) price2num((!empty($tmpproduct->cost_price)) ? $tmpproduct->cost_price : (float) $tmpproduct->pmp);
-=======
+======= TODO
 						$unit_cost = (!empty($tmpproduct->cost_price)) ? $tmpproduct->cost_price : $tmpproduct->pmp;
 						$line->unit_cost = (float) price2num($unit_cost);
 >>>>>>> develop

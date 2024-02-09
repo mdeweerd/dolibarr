@@ -85,7 +85,7 @@ if ($contextpage == 'poslist') {
 <<<<<<< HEAD
 $lineid = GETPOSTINT('lineid');
 $userid = GETPOSTINT('userid');
-=======
+======= TODO
 $userid = GETPOST('userid', 'int');
 >>>>>>> develop
 $search_ref = GETPOST('sf_ref') ? GETPOST('sf_ref', 'alpha') : GETPOST('search_ref', 'alpha');

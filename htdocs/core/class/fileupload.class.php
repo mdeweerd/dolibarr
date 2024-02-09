@@ -505,7 +505,7 @@ class FileUpload
 
 		$upload = isset($_FILES[$this->options['param_name']]) ?
 		$_FILES[$this->options['param_name']] : null;
-=======
+======= TODO
 		$upload = isset($_FILES[$this->options['param_name']]) ? $_FILES[$this->options['param_name']] : null;
 >>>>>>> develop
 		$info = array();

@@ -1035,7 +1035,7 @@ if ($action == 'create') {
 				$text = '';
 <<<<<<< HEAD
 				if ((getDolGlobalString('MAILING_LIMIT_SENDBYWEB') && $conf->global->MAILING_LIMIT_SENDBYWEB < $nbemail) && ($object->status == 1 || ($object->status == 2 && $nbtry < $nbemail))) {
-=======
+======= TODO
 				if ((getDolGlobalString('MAILING_LIMIT_SENDBYWEB') && getDolGlobalInt('MAILING_LIMIT_SENDBYWEB') < $nbemail) && ($object->statut == 1 || ($object->statut == 2 && $nbtry < $nbemail))) {
 >>>>>>> develop
 					if (getDolGlobalInt('MAILING_LIMIT_SENDBYWEB') > 0) {
@@ -1066,7 +1066,7 @@ if ($action == 'create') {
 					$text = $listofmethods[getDolGlobalString('MAIN_MAIL_SENDMODE')];
 				} else {
 					$text = $listofmethods['mail'];
-=======
+======= TODO
 			if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') && getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'default') {
 				$text = $listofmethods[getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING')];
 			} elseif (getDolGlobalString('MAIN_MAIL_SENDMODE')) {

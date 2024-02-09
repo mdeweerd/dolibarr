@@ -371,7 +371,7 @@ class Cpaiement extends CommonDict
 		$this->type = '';
 <<<<<<< HEAD
 		$this->active = 0;
-=======
+======= TODO
 		$this->active = 1;
 >>>>>>> develop
 		$this->accountancy_code = '';

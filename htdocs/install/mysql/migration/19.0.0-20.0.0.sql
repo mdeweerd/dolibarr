@@ -221,7 +221,7 @@ ALTER TABLE llx_ticket ADD COLUMN model_pdf varchar(255);
 ALTER TABLE llx_ticket ADD COLUMN last_main_doc varchar(255);
 ALTER TABLE llx_ticket ADD COLUMN extraparams varchar(255);
 ALTER TABLE llx_product ADD COLUMN last_main_doc varchar(255);
-=======
+======= TODO
 ALTER TABLE llx_ticket ADD COLUMN model_pdf varchar(255);
 ALTER TABLE llx_ticket ADD COLUMN last_main_doc varchar(255);
 ALTER TABLE llx_ticket ADD COLUMN extraparams varchar(255);
