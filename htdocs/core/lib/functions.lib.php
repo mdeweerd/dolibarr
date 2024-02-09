@@ -144,7 +144,7 @@ function getMultidirOutput($object, $module = '')
 /**
  * Return dolibarr global constant string value
  *
- * @param string $key 		key to return value, return '' if not set
+ * @param string $key 		key to return value, return $default if not set
  * @param string $default 	value to return
  * @return string
  */
@@ -1651,6 +1651,12 @@ function dol_escape_php($stringtoescape, $stringforquotes = 2)
 		return str_replace('"', "'", $stringtoescape);
 	}
 	if ($stringforquotes == 1) {
+		// We remove the \ char.
+		// If we allow the \ char, we can have $stringtoescape =
+		// abc\';phpcodedanger;  so the escapement will become
+		// abc\\';phpcodedanger;  and injecting this into
+		// $a='...' will give $ac='abc\\';phpcodedanger;
+		$stringtoescape = str_replace('\\', '', $stringtoescape);
 		return str_replace("'", "\'", str_replace('"', "'", $stringtoescape));
 	}
 
@@ -8718,7 +8724,7 @@ function getCommonSubstitutionArray($outputlangs, $onlykey = 0, $exclude = null,
 		$daytext = $outputlangs->trans('Day'.$tmp['wday']);
 
 		$substitutionarray = array_merge($substitutionarray, array(
-			'__NOW_TMS__' => (int) $now,
+			'__NOW_TMS__' => (string) $now,		// Must be the string that represent the int
 			'__NOW_TMS_YMD__' => dol_print_date($now, 'day', 'auto', $outputlangs),
 			'__DAY__' => (string) $tmp['mday'],
 			'__DAY_TEXT__' => $daytext, // Monday
@@ -9558,7 +9564,11 @@ function dol_osencode($str)
  * 		@param	string	$fieldid		Field to get
  *      @param  int		$entityfilter	Filter by entity
  *      @param	string	$filters		Filters to add. WARNING: string must be escaped for SQL and not coming from user input.
+<<<<<<< HEAD
  *      @return int<-1,max>				ID of code if OK, 0 if key empty, -1 if KO
+=======
+ *      @return int|string				Return integer <0 if KO, Id of code if OK, '' if empty key provided.
+>>>>>>> develop
  *      @see $langs->getLabelFromKey
  */
 function dol_getIdFromCode($db, $key, $tablename, $fieldkey = 'code', $fieldid = 'id', $entityfilter = 0, $filters = '')
