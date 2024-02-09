@@ -1059,15 +1059,15 @@ if ($action == 'create') {
 					$text = $listofmethods[getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING')];
 				} elseif (getDolGlobalString('MAIN_MAIL_SENDMODE')) {
 					$text = $listofmethods[getDolGlobalString('MAIN_MAIL_SENDMODE')];
-    			} else {
+				} else {
 					$text = $listofmethods['mail'];
-    			}
-    			print $text;
-    			if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'default') {
-    				if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'mail') {
-    					print ' <span class="opacitymedium">(';
-    					print getDolGlobalString('MAIN_MAIL_SMTP_SERVER_EMAILING', getDolGlobalString('MAIN_MAIL_SMTP_SERVER'));
-    					print ')</span>';
+				}
+				print $text;
+				if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'default') {
+					if (getDolGlobalString('MAIN_MAIL_SENDMODE_EMAILING') != 'mail') {
+						print ' <span class="opacitymedium">(';
+						print getDolGlobalString('MAIN_MAIL_SMTP_SERVER_EMAILING', getDolGlobalString('MAIN_MAIL_SMTP_SERVER'));
+						print ')</span>';
 					}
 				} elseif (getDolGlobalString('MAIN_MAIL_SENDMODE') != 'mail' && getDolGlobalString('MAIN_MAIL_SMTP_SERVER')) {
 					print ' <span class="opacitymedium">('.getDolGlobalString('MAIN_MAIL_SMTP_SERVER').')</span>';
