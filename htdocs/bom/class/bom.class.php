@@ -1449,13 +1449,9 @@ class BOM extends CommonObject
 							$this->error = $tmpproduct->error;
 							return -1;
 						}
-<<<<<<< HEAD
-						$line->unit_cost = (float) price2num((!empty($tmpproduct->cost_price)) ? $tmpproduct->cost_price : (float) $tmpproduct->pmp);
-======= TODO
 						$unit_cost = (!empty($tmpproduct->cost_price)) ? $tmpproduct->cost_price : $tmpproduct->pmp;
 						$line->unit_cost = (float) price2num($unit_cost);
->>>>>>> develop
-						if (empty($line->unit_cost)) {
+						if (empty($unit_cost)) {
 							if ($productFournisseur->find_min_price_product_fournisseur($line->fk_product) > 0) {
 								if ($productFournisseur->fourn_remise_percent != "0") {
 									$line->unit_cost = $productFournisseur->fourn_unitprice_with_discount;

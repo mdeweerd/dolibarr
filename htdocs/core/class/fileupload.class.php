@@ -502,12 +502,10 @@ class FileUpload
 			return $this->delete($_REQUEST['file']);
 		}
 		//var_dump($_FILES);
-
-		$upload = isset($_FILES[$this->options['param_name']]) ?
-		$_FILES[$this->options['param_name']] : null;
 ======= TODO
-		$upload = isset($_FILES[$this->options['param_name']]) ? $_FILES[$this->options['param_name']] : null;
 >>>>>>> develop
+
+		$upload = isset($_FILES[$this->options['param_name']]) ? $_FILES[$this->options['param_name']] : null;
 		$info = array();
 		if ($upload && is_array($upload['tmp_name'])) {
 			// param_name is an array identifier like "files[]",

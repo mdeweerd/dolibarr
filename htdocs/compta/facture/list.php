@@ -82,12 +82,7 @@ if ($contextpage == 'poslist') {
 	$optioncss = 'print';
 }
 
-<<<<<<< HEAD
-$lineid = GETPOSTINT('lineid');
 $userid = GETPOSTINT('userid');
-======= TODO
-$userid = GETPOST('userid', 'int');
->>>>>>> develop
 $search_ref = GETPOST('sf_ref') ? GETPOST('sf_ref', 'alpha') : GETPOST('search_ref', 'alpha');
 $search_refcustomer = GETPOST('search_refcustomer', 'alpha');
 $search_type = GETPOST('search_type', 'int');

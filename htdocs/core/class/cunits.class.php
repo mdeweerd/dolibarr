@@ -85,11 +85,7 @@ class CUnits extends CommonDict
 			$this->libelle = trim($this->short_label);
 		}
 		if (isset($this->unit_type)) {
-<<<<<<< HEAD
-			$this->active = (int) $this->unit_type;
-======= TODO
 			$this->unit_type = trim($this->unit_type);
->>>>>>> develop
 		}
 		if (isset($this->active)) {
 			$this->active = (int) $this->active;

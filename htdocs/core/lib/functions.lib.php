@@ -9564,11 +9564,7 @@ function dol_osencode($str)
  * 		@param	string	$fieldid		Field to get
  *      @param  int		$entityfilter	Filter by entity
  *      @param	string	$filters		Filters to add. WARNING: string must be escaped for SQL and not coming from user input.
-<<<<<<< HEAD
  *      @return int<-1,max>				ID of code if OK, 0 if key empty, -1 if KO
-======= TODO
- *      @return int|string				Return integer <0 if KO, Id of code if OK, '' if empty key provided.
->>>>>>> develop
  *      @see $langs->getLabelFromKey
  */
 function dol_getIdFromCode($db, $key, $tablename, $fieldkey = 'code', $fieldid = 'id', $entityfilter = 0, $filters = '')
