@@ -15,7 +15,6 @@ ignore-regex = '\\[fnrstv]'
 builtin = "clear,rare,informal,usage,code,names"
 
 ignore-words = "dev/tools/codespell/codespell-ignore.txt"
-exclude-file = "dev/tools/codespell/codespell-lines-ignore.txt"
 uri-ignore-words-list="ned"
 
 # For future reference: it is not currently possible to specify

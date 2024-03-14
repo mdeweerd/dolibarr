@@ -180,8 +180,8 @@ repos:
       - id: codespell
         # Due to a current limitation of configuration files,
         # we can specify two dicts only on the CLI.
-        # You can update the contents of the exclude-file codespell-lines-ignore with the script
-        # dev/tools/codespell/addCodespellIgnores.sh
+        # You can add word exceptions to the files mentioned in one of the .txt
+        # files below.
         args:
           - -D
           - "-"
@@ -189,8 +189,6 @@ repos:
           - dev/tools/codespell/codespell-dict.txt
           - -I
           - dev/tools/codespell/codespell-ignore.txt
-          - -x
-          - dev/tools/codespell/codespell-lines-ignore.txt
         exclude_types: [image]
         exclude: (?x)^(.phan/stubs/.*)$
         additional_dependencies: [tomli]
@@ -211,8 +209,6 @@ repos:
           - creat,unitl,alltime,datas,referers
           - -I
           - dev/tools/codespell/codespell-ignore.txt
-          - -x
-          - dev/tools/codespell/codespell-lines-ignore.txt
           - --uri-ignore-words-list
           - ned
 
