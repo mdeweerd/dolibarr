@@ -234,7 +234,8 @@ before_script:
       sudo systemctl stop mariadb.service
       echo "MySQL restart without pass"
       #sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa
-      sudo mysqld_safe --skip-grant-tables --port=3306 --socket=/tmp/aaa &
+      #sudo mysqld_safe --skip-grant-tables --port=3306 --socket=/tmp/aaa &
+      sudo mysqld_safe --skip-grant-tables --port=3306 &
       sleep 5
       echo "MySQL LOG -- START"
       sudo cat /var/log/mysql/error.log
