@@ -46,3 +46,4 @@ jobs:
           #  script
         env:
           TRAVIS_PHP_VERSION: ${{ matrix.php-version }}
+          DB: mysql
