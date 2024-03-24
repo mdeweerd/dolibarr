@@ -28,7 +28,7 @@ env:
   global:
   # Set to true for very verbose output
   - DEBUG=true
-  - COMPOSER=/usr/local/bin
+  - COMPOSER=/usr/local/bin/composer
 
 cache:
   directories:
