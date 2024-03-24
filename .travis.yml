@@ -236,15 +236,9 @@ before_script:
       sudo mkdir -p /var/run/mysqld
       sudo chmod 777 /var/run/mysqld
       #sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa
-      sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa --port=3306 &
+      sudo mysqld_safe --port=3306 --skip-grant-tables --socket=/tmp/aaa &
       sleep 3
-      echo "MySQL LOG -- START"
-      sudo cat /var/log/mysql/error.log
-      echo "MySQL LOG -- END"
-      sleep 3
-      echo "MySQL LOG -- START"
-      sudo cat /var/log/mysql/error.log
-      echo "MySQL LOG -- END"
+      echo "MySQL LOG -- START" ; sudo cat /var/log/mysql/*.log ; echo "MySQL LOG -- END"
       sudo netstat -a -p
       sudo ps fauxww
       echo "MySQL set root password"
