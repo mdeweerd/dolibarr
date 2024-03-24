@@ -236,7 +236,8 @@ before_script:
       sudo mkdir -p /var/run/mysqld
       sudo chmod 777 /var/run/mysqld
       #sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa
-      sudo mysqld_safe --port=3306 --skip-grant-tables --socket=/tmp/aaa &
+      #sudo mysqld_safe --port=3306 --skip-grant-tables --socket=/tmp/aaa &
+      sudo mysqld_safe --port=3306 --skip-grant-tables &
       sleep 3
       echo "MySQL LOG -- START" ; sudo cat /var/log/mysql/*.log ; echo "MySQL LOG -- END"
       sudo netstat -a -p
