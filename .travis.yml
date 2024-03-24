@@ -235,7 +235,7 @@ before_script:
       echo "MySQL restart without pass"
       #sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa
       sudo mysqld_safe --skip-grant-tables --port=3306 --socket=/tmp/aaa &
-      sleep 3
+      sleep 5
       echo "MySQL LOG -- START"
       sudo cat /var/log/mysql/error.log
       echo "MySQL LOG -- END"
