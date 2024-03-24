@@ -37,7 +37,7 @@ jobs:
       - name: Checkout travis file
         uses: actions/checkout@v4
       - name: Run .travis.yml build script
-        uses: ktomk/run-travis-yml@v1
+        uses: ktomk/run-travis-yml@v1.8.1
         with:
           # run-job: travis  # name of a job in travis file
           allow-failure: false
