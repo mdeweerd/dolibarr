@@ -233,6 +233,7 @@ before_script:
       echo "MySQL stop"
       sudo systemctl stop mariadb.service
       echo "MySQL restart without pass"
+      sudo mkdir -p /var/run/mysqld
       #sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa
       sudo mysqld_safe --skip-grant-tables --socket=/tmp/aaa &
       sleep 5
