@@ -28,6 +28,7 @@ env:
   global:
   # Set to true for very verbose output
   - DEBUG=true
+  - COMPOSER=/usr/local/bin
 
 cache:
   directories:
@@ -141,24 +142,24 @@ install:
 
   #sudo apt install composer
   sudo chown -R $(whoami) ~/.config/composer
-  composer -V
-  composer -n config -g vendor-dir $TRAVIS_BUILD_DIR/htdocs/includes
+  ${COMPOSER} -V
+  ${COMPOSER} -n config -g vendor-dir $TRAVIS_BUILD_DIR/htdocs/includes
   echo
 
 - |
   echo "Update Composer version and Install tools - PHP Unit, Parallel Lint, PHP CodeSniffer, PHP Vardump check - for $TRAVIS_PHP_VERSION"
   echo "(composer version 2.5 is bugged and generate phpunit error Exception: Serialization of 'Closure' is not allowed)"
   if [ "$TRAVIS_PHP_VERSION" = '7.1' ] || [ "$TRAVIS_PHP_VERSION" = '7.2' ]; then
-    sudo composer self-update 2.2.18
-    composer -n require phpunit/phpunit ^7.5 \
+    sudo ${COMPOSER} self-update 2.2.18
+    ${COMPOSER} -n require phpunit/phpunit ^7.5 \
                         php-parallel-lint/php-parallel-lint ^1 \
                         php-parallel-lint/php-console-highlighter ^0 \
                         php-parallel-lint/php-var-dump-check ~0.4 \
                         squizlabs/php_codesniffer ^3
   fi
   if [ "$TRAVIS_PHP_VERSION" = '7.3' ] || [ "$TRAVIS_PHP_VERSION" = '7.4' ]; then
-    sudo composer self-update 2.2.18
-    composer -n require phpunit/phpunit ^7.5 \
+    sudo ${COMPOSER} self-update 2.2.18
+    ${COMPOSER} -n require phpunit/phpunit ^7.5 \
                         php-parallel-lint/php-parallel-lint ^1.2 \
                         php-parallel-lint/php-console-highlighter ^0 \
                         php-parallel-lint/php-var-dump-check ~0.4 \
@@ -166,8 +167,8 @@ install:
   fi
   # phpunit 9 is required for php 8
   if [ "$TRAVIS_PHP_VERSION" = '8.0' ] || [ "$TRAVIS_PHP_VERSION" = '8.1' ] || [ "$TRAVIS_PHP_VERSION" = '8.2' ] || [ "$TRAVIS_PHP_VERSION" = '8.3' ] || [ "$TRAVIS_PHP_VERSION" = 'nightly' ]; then
-      sudo composer self-update 2.4.4
-      composer -n require --ignore-platform-reqs phpunit/phpunit ^8 \
+      sudo ${COMPOSER} self-update 2.4.4
+      ${COMPOSER} -n require --ignore-platform-reqs phpunit/phpunit ^8 \
                                                  php-parallel-lint/php-parallel-lint ^1.2 \
                                                  php-parallel-lint/php-console-highlighter ^0 \
                                                  php-parallel-lint/php-var-dump-check ~0.4 \
