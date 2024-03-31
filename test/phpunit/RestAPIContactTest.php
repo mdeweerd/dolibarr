@@ -69,7 +69,7 @@ class RestAPIContactTest extends AbstractRestAPITest
 		$this->assertEquals(0, $result['curl_error_no']);
 		$object = json_decode($result['content'], true);
 		$this->assertNotNull($object, "Parsing of json result must not be null");
-		$this->assertEquals(1, $object['statut']);
+		$this->assertEquals(1, $object['statut'] ?? $object['status']);
 	}
 
 	/**
