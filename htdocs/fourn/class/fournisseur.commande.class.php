@@ -120,7 +120,7 @@ class CommandeFournisseur extends CommonOrder
 	 * @deprecated see $status
 	 * @see $status
 	 */
-	public $statut; // 0=Draft -> 1=Validated -> 2=Approved -> 3=Ordered/Process running -> 4=Received partially -> 5=Received totally -> (reopen) 4=Received partially
+	public $status; // 0=Draft -> 1=Validated -> 2=Approved -> 3=Ordered/Process running -> 4=Received partially -> 5=Received totally -> (reopen) 4=Received partially
 	//                                                                                          -> 7=Canceled/Never received -> (reopen) 3=Process running
 	//									                            -> 6=Canceled -> (reopen) 2=Approved
 	//  		                                      -> 9=Refused  -> (reopen) 1=Validated
@@ -551,7 +551,6 @@ class CommandeFournisseur extends CommonOrder
 			$this->ref_supplier = $obj->ref_supplier;
 			$this->socid = $obj->fk_soc;
 			$this->fourn_id = $obj->fk_soc;
-			$this->statut = $obj->status;	// deprecated
 			$this->status = $obj->status;
 			$this->billed = $obj->billed;
 			$this->last_main_doc = $obj->last_main_doc;
@@ -880,7 +879,6 @@ class CommandeFournisseur extends CommonOrder
 			if (!$error) {
 				$result = 1;
 				$this->status = self::STATUS_VALIDATED;
-				$this->statut = self::STATUS_VALIDATED;	// deprecated
 				$this->ref = $num;
 			}
 
@@ -1384,10 +1382,8 @@ class CommandeFournisseur extends CommonOrder
 					$this->ref = $this->newref;
 
 					if ($movetoapprovestatus) {
-						$this->statut = self::STATUS_ACCEPTED; // deprecated
 						$this->status = self::STATUS_ACCEPTED;
 					} else {
-						$this->statut = self::STATUS_VALIDATED; // deprecated
 						$this->status = self::STATUS_VALIDATED;
 					}
 					if (empty($secondlevel)) {	// standard or first level approval
@@ -1543,7 +1539,6 @@ class CommandeFournisseur extends CommonOrder
 
 			dol_syslog(get_class($this)."::commande", LOG_DEBUG);
 			if ($this->db->query($sql)) {
-				$this->statut = self::STATUS_ORDERSENT; // deprecated
 				$this->status = self::STATUS_ORDERSENT;
 				$this->methode_commande_id = $methode;
 				$this->date_commande = $date;
@@ -1617,8 +1612,7 @@ class CommandeFournisseur extends CommonOrder
 		}
 		$this->entity = setEntity($this);
 
-		// We set order into draft status
-		$this->statut = self::STATUS_DRAFT;	// deprecated
+		// Set the order status to DRAFT
 		$this->status = self::STATUS_DRAFT;
 
 		$sql = "INSERT INTO ".$this->db->prefix()."commande_fournisseur (";
@@ -1840,7 +1834,7 @@ class CommandeFournisseur extends CommonOrder
 		$sql .= " localtax2=".(isset($this->total_localtax2) ? $this->total_localtax2 : "null").",";
 		$sql .= " total_ht=".(isset($this->total_ht) ? $this->total_ht : "null").",";
 		$sql .= " total_ttc=".(isset($this->total_ttc) ? $this->total_ttc : "null").",";
-		$sql .= " fk_statut=".(isset($this->status) ? $this->status : "null").",";
+		$sql .= " fk_statut=".(isset($this->status) ? (int) $this->status : "null").",";
 		$sql .= " fk_user_author=".(isset($this->user_author_id) ? $this->user_author_id : "null").",";
 		$sql .= " fk_user_valid=".(isset($this->user_validation_id) && $this->user_validation_id > 0 ? $this->user_validation_id : "null").",";
 		$sql .= " fk_projet=".((!empty($this->fk_project) && $this->fk_project > 0) ? $this->fk_project : "null").",";
@@ -1938,7 +1932,6 @@ class CommandeFournisseur extends CommonOrder
 		}
 
 		$this->id = 0;
-		$this->statut = self::STATUS_DRAFT; // deprecated
 		$this->status = self::STATUS_DRAFT;
 
 		// Clear fields
@@ -2469,7 +2462,7 @@ class CommandeFournisseur extends CommonOrder
 		$this->fetchObjectLinked(null, 'order_supplier');
 		if (!empty($this->linkedObjects) && array_key_exists('reception', $this->linkedObjects)) {
 			foreach ($this->linkedObjects['reception'] as $element) {
-				if ($element->statut >= 0) {
+				if ($element->status >= 0) {
 					$this->errors[] = $langs->trans('ReceptionExist');
 					$error++;
 					break;
@@ -3325,7 +3318,6 @@ class CommandeFournisseur extends CommonOrder
 		$this->multicurrency_tx = 1;
 		$this->multicurrency_code = $conf->currency;
 
-		$this->statut = 0; // deprecated
 		$this->status = 0;
 
 		// Lines
@@ -3488,7 +3480,6 @@ class CommandeFournisseur extends CommonOrder
 			while ($obj = $this->db->fetch_object($resql)) {
 				$commandestatic->delivery_date = $this->db->jdate($obj->delivery_date);
 				$commandestatic->date_commande = $this->db->jdate($obj->date_commande);
-				$commandestatic->statut = $obj->fk_statut; // deprecated
 				$commandestatic->status = $obj->fk_statut;
 
 				$response->nbtodo++;
