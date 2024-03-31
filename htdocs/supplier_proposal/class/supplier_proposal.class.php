@@ -113,11 +113,6 @@ class SupplierProposal extends CommonObject
 	 */
 	public $ref_supplier; //Reference saisie lors de l'ajout d'une ligne à la demande
 
-	/**
-	 * @var int
-	 * @deprecated
-	 */
-	public $statut; // 0 (draft), 1 (validated), 2 (signed), 3 (not signed), 4 (processed/billed)
 
 	/**
 	 * @var int|string Date of proposal
@@ -1216,7 +1211,6 @@ class SupplierProposal extends CommonObject
 
 		$this->id = 0;
 		$this->status = 0;
-		$this->statut = 0;
 
 		if (!getDolGlobalString('SUPPLIER_PROPOSAL_ADDON') || !is_readable(DOL_DOCUMENT_ROOT."/core/modules/supplier_proposal/" . getDolGlobalString('SUPPLIER_PROPOSAL_ADDON').".php")) {
 			$this->error = 'ErrorSetupNotComplete';
@@ -1327,7 +1321,6 @@ class SupplierProposal extends CommonObject
 				$this->note                 = $obj->note_private; // TODO deprecated
 				$this->note_private         = $obj->note_private;
 				$this->note_public          = $obj->note_public;
-				$this->statut               = (int) $obj->status;
 				$this->status               = (int) $obj->status;
 				$this->datec                = $this->db->jdate($obj->datec); // TODO deprecated
 				$this->datev                = $this->db->jdate($obj->datev); // TODO deprecated
@@ -1571,7 +1564,6 @@ class SupplierProposal extends CommonObject
 				}
 
 				$this->ref = $num;
-				$this->statut = self::STATUS_VALIDATED;
 				$this->status = self::STATUS_VALIDATED;
 				$this->user_validation_id = $user->id;
 				$this->datev = $now;
@@ -1783,7 +1775,6 @@ class SupplierProposal extends CommonObject
 		$hidedetails = 0;
 		$hidedesc = 0;
 		$hideref = 0;
-
 		$error = 0;
 		$now = dol_now();
 
@@ -2011,7 +2002,6 @@ class SupplierProposal extends CommonObject
 
 			if (!$error) {
 				$this->status = self::STATUS_DRAFT;
-				$this->statut = self::STATUS_DRAFT;	// deprecated
 				$this->db->commit();
 				return 1;
 			} else {
@@ -2259,7 +2249,7 @@ class SupplierProposal extends CommonObject
 	 */
 	public function getLibStatut($mode = 0)
 	{
-		return $this->LibStatut((isset($this->status) ? $this->status : $this->statut), $mode);
+		return $this->LibStatut($this->status, $mode);
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
