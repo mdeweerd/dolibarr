@@ -77,13 +77,6 @@ class User extends CommonObject
 
 	/**
 	 * @var int
-	 * @deprecated Use $status
-	 * @see $status
-	 */
-	public $statut;
-
-	/**
-	 * @var int
 	 */
 	public $status;
 
@@ -693,7 +686,6 @@ class User extends CommonObject
 				$this->note_public = $obj->note_public;
 				$this->note_private = $obj->note_private;
 
-				$this->statut = $obj->status;			// deprecated
 				$this->status = $obj->status;
 
 				$this->photo = $obj->photo;
@@ -1587,8 +1579,8 @@ class User extends CommonObject
 		$error = 0;
 
 		// Check parameters
-		if (isset($this->statut)) {
-			if ($this->statut == $status) {
+		if (isset($this->status)) {
+			if ($this->status == $status) {
 				return 0;
 			}
 		} elseif (isset($this->status) && $this->status == $status) {
@@ -1623,7 +1615,6 @@ class User extends CommonObject
 			return -$error;
 		} else {
 			$this->status = $status;
-			$this->statut = $status;
 			$this->db->commit();
 			return 1;
 		}
@@ -1831,7 +1822,7 @@ class User extends CommonObject
 				$entrepot->label = $langs->trans("PersonalStock", $this->getFullName($langs));
 				$entrepot->libelle = $entrepot->label; // For backward compatibility
 				$entrepot->description = $langs->trans("ThisWarehouseIsPersonalStock", $this->getFullName($langs));
-				$entrepot->statut = 1;
+				$entrepot->status = 1;
 				$entrepot->country_id = $mysoc->country_id;
 
 				$warehouseid = $entrepot->create($user);
@@ -3303,7 +3294,7 @@ class User extends CommonObject
 	 */
 	public function getLibStatut($mode = 0)
 	{
-		return $this->LibStatut(isset($this->statut) ? (int) $this->statut : (int) $this->status, $mode);
+		return $this->LibStatut((int) $this->status, $mode);
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
