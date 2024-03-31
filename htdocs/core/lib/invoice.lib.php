@@ -657,8 +657,8 @@ function getCustomerInvoiceDraftTable($maxCount = 500, $socid = 0)
 					$tmpinvoice->total_tva = $obj->total_tva;
 					$tmpinvoice->total_ttc = $obj->total_ttc;
 					$tmpinvoice->ref_client = $obj->ref_client;
-					$tmpinvoice->statut = $obj->status;
-					$tmpinvoice->paye = $obj->paye;
+					$tmpinvoice->status = $obj->status;
+					$tmpinvoice->paid = $obj->paye;
 
 					$companystatic->id = $obj->socid;
 					$companystatic->name = $obj->name;
@@ -793,9 +793,7 @@ function getDraftSupplierTable($maxCount = 500, $socid = 0)
 					$facturesupplierstatic->total_ttc = $obj->total_ttc;
 					$facturesupplierstatic->ref_supplier = $obj->ref_supplier;
 					$facturesupplierstatic->type = $obj->type;
-					$facturesupplierstatic->statut = $obj->status;
 					$facturesupplierstatic->status = $obj->status;
-					$facturesupplierstatic->paye = $obj->paye;
 					$facturesupplierstatic->paid = $obj->paye;
 
 					$companystatic->id = $obj->socid;
@@ -911,8 +909,7 @@ function getCustomerInvoiceLatestEditTable($maxCount = 5, $socid = 0)
 
 		$objectstatic->id = $obj->rowid;
 		$objectstatic->ref = $obj->ref;
-		$objectstatic->paye = $obj->paye;
-		$objectstatic->statut = $obj->status;
+		$objectstatic->paid = $obj->paye;
 		$objectstatic->status = $obj->status;
 		$objectstatic->total_ht = $obj->total_ht;
 		$objectstatic->total_tva = $obj->total_tva;
@@ -1026,9 +1023,7 @@ function getPurchaseInvoiceLatestEditTable($maxCount = 5, $socid = 0)
 
 		$objectstatic->id = $obj->rowid;
 		$objectstatic->ref = $obj->ref;
-		$objectstatic->paye = $obj->paye;
 		$objectstatic->paid = $obj->paye;
-		$objectstatic->statut = $obj->status;
 		$objectstatic->status = $obj->status;
 		$objectstatic->total_ht = $obj->total_ht;
 		$objectstatic->total_tva = $obj->total_tva;
@@ -1173,8 +1168,8 @@ function getCustomerInvoiceUnpaidOpenTable($maxCount = 500, $socid = 0)
 					$tmpinvoice->total_tva = $obj->total_tva;
 					$tmpinvoice->total_ttc = $obj->total_ttc;
 					$tmpinvoice->type = $obj->type;
-					$tmpinvoice->statut = $obj->status;
-					$tmpinvoice->paye = $obj->paye;
+					$tmpinvoice->status = $obj->status;
+					$tmpinvoice->paid = $obj->paye;
 					$tmpinvoice->date_lim_reglement = $db->jdate($obj->datelimite);
 
 					$societestatic->id = $obj->socid;
@@ -1364,10 +1359,8 @@ function getPurchaseInvoiceUnpaidOpenTable($maxCount = 500, $socid = 0)
 					$facstatic->total_ht = $obj->total_ht;
 					$facstatic->total_tva = $obj->total_tva;
 					$facstatic->total_ttc = $obj->total_ttc;
-					$facstatic->statut = $obj->status;
 					$facstatic->status = $obj->status;
 					$facstatic->paid = $obj->paye;
-					$facstatic->paye = $obj->paye;
 
 					$societestatic->id = $obj->socid;
 					$societestatic->name = $obj->name;
