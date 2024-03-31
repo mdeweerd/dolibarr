@@ -479,7 +479,6 @@ if ($sql_select && $documentstatic !== null) {
 		$documentstatic->type = $objp->doc_type;
 
 		$documentstatic->fk_statut = $objp->status;
-		$documentstatic->statut = $objp->status;
 		$documentstatic->status = $objp->status;
 		if ($type_element == 'invoice' || $type_element == 'supplier_invoice') {
 			$documentstatic->paye = $objp->paid;
@@ -487,7 +486,7 @@ if ($sql_select && $documentstatic !== null) {
 		}
 
 		if (is_object($documentstaticline)) {
-			$documentstaticline->statut = $objp->status;
+			$documentstaticline->status = $objp->status;
 		}
 
 		print '<tr class="oddeven">';
