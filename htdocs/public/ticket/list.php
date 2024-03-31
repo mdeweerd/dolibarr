@@ -704,7 +704,7 @@ if ($action == "view_ticketlist") {
 						}
 					}
 
-					// Statut
+					// Status
 					if (!empty($arrayfields['t.fk_statut']['checked'])) {
 						print '<td class="nowraponall">';
 						$object->status = $obj->fk_statut;
