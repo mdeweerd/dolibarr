@@ -119,7 +119,7 @@ class Ticket extends CommonObject
 	 * @deprecated use status
 	 * @see $status
 	 */
-	public $fk_statut;
+	private $fk_statut;
 
 	/**
 	 * @var int Ticket status
@@ -324,6 +324,18 @@ class Ticket extends CommonObject
 	);
 	// END MODULEBUILDER PROPERTIES
 
+
+	/**
+	 * Provide list of deprecated properties and replacements
+	 *
+	 * @return array<string,string>
+	 */
+	protected function deprecatedProperties()
+	{
+		return array(
+			'fk_statut' => 'status',
+		) + parent::deprecatedProperties();
+	}
 
 	/**
 	 *  Constructor
@@ -748,7 +760,6 @@ class Ticket extends CommonObject
 				$this->ip = $obj->ip;
 
 				$this->status = $obj->status;
-				$this->fk_statut = $this->status; // For backward compatibility
 
 				$this->resolution = $obj->resolution;
 				$this->progress = $obj->progress;
@@ -947,7 +958,6 @@ class Ticket extends CommonObject
 					$line->message = $obj->message;
 					$line->note_private = $obj->note_private;
 					$line->note_public = $obj->note_public;
-					$line->fk_statut = $obj->status;
 					$line->status = $obj->status;
 					$line->resolution = $obj->resolution;
 					$line->progress = $obj->progress;
@@ -1273,7 +1283,6 @@ class Ticket extends CommonObject
 
 		// Clear fields
 		$object->id = 0;
-		$object->statut = 0;
 		$object->status = 0;
 
 		// Create clone
@@ -2022,14 +2031,14 @@ class Ticket extends CommonObject
 						foreach ($this->linkedObjectsIds['fichinter'] as $fichinter_id) {
 							$fichinter = new Fichinter($this->db);
 							$fichinter->fetch($fichinter_id);
-							if ($fichinter->statut == 0) {
+							if ($fichinter->status == 0) {
 								$result = $fichinter->setValid($user);
 								if (!$result) {
 									$this->errors[] = $fichinter->error;
 									$error++;
 								}
 							}
-							if ($fichinter->statut < 3) {
+							if ($fichinter->status < 3) {
 								$result = $fichinter->setStatut(3);
 								if (!$result) {
 									$this->errors[] = $fichinter->error;
