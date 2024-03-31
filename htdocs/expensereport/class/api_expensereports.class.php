@@ -2,7 +2,7 @@
 /* Copyright (C) 2015   Jean-François Ferry     <jfefe@aternatik.fr>
  * Copyright (C) 2016   Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2020-2024  Frédéric France		<frederic.france@free.fr>
- * Copyright (C) 2025		MDW					<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2025	MDW					<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2025	William Mead			<william@m34d.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -890,10 +890,13 @@ class ExpenseReports extends DolibarrApi
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
-	 * Clean sensible object datas
+	 * Clean sensitive data from object
 	 *
-	 * @param   Object  $object     Object to clean
-	 * @return  Object              Object with cleaned properties
+	 * @template T of \CommonObject
+	 * @param   T  $object     Object to clean
+	 * @phan-param CommonObject  $object
+	 * @return  T              Object with cleaned properties
+	 * @phan-return CommonObject
 	 */
 	protected function _cleanObjectDatas($object)
 	{
@@ -937,7 +940,7 @@ class ExpenseReports extends DolibarrApi
 		unset($object->country_id);
 		unset($object->country_code);
 
-		unset($object->note); // We already use note_public and note_pricate
+		// unset($object->note); // We already use note_public and note_private // stop unsetting as this unsets note_private as well
 
 		return $object;
 	}
