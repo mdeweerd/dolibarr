@@ -683,7 +683,7 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 		*/
 
 		// Draft watermark
-		if ($object->fk_statut == 0 && getDolGlobalString('EXPENSEREPORT_DRAFT_WATERMARK')) {
+		if ($object->status == 0 && getDolGlobalString('EXPENSEREPORT_DRAFT_WATERMARK')) {
 			pdf_watermark($pdf, $outputlangs, $this->page_hauteur, $this->page_largeur, 'mm', $conf->global->EXPENSEREPORT_DRAFT_WATERMARK);
 		}
 
@@ -841,7 +841,7 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 				$pdf->MultiCell(96, 4, $outputlangs->transnoentities("DateCreation")." : ".dol_print_date($object->date_create, "day", false, $outputlangs), 0, 'L');
 			}
 
-			if ($object->fk_statut == 99) {
+			if ($object->status == 99) {
 				if ($object->fk_user_refuse > 0) {
 					$userfee = new User($this->db);
 					$userfee->fetch($object->fk_user_refuse);
@@ -855,7 +855,7 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 					$pdf->SetXY($posx + 2, $posy);
 					$pdf->MultiCell(96, 4, $outputlangs->transnoentities("DATE_REFUS")." : ".dol_print_date($object->date_refuse, "day", false, $outputlangs), 0, 'L');
 				}
-			} elseif ($object->fk_statut == 4) {
+			} elseif ($object->status == 4) {
 				if ($object->fk_user_cancel > 0) {
 					$userfee = new User($this->db);
 					$userfee->fetch($object->fk_user_cancel);
@@ -882,7 +882,7 @@ class pdf_standard_expensereport extends ModeleExpenseReport
 				}
 			}
 
-			if ($object->fk_statut == 6) {
+			if ($object->status == 6) {
 				if ($object->fk_user_paid > 0) {
 					$userfee = new User($this->db);
 					$userfee->fetch($object->fk_user_paid);
