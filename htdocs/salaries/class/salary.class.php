@@ -148,7 +148,7 @@ class Salary extends CommonObject
 	/**
 	 * @var		int<0,1> 	1 if salary paid COMPLETELY, 0 otherwise (Note ->paye is still used for salary, the couple statut/close_code that replace it is for invoices only)
 	 */
-	public $paye;
+	public $paid;
 
 	/**
 	 * @var float amount remain to pay
@@ -186,6 +186,18 @@ class Salary extends CommonObject
 		'note_public' => array('type' => 'text', 'label' => 'NotePublic', 'enabled' => 1, 'visible' => 0, 'position' => 220),
 	);
 
+
+	/**
+	 * Provide list of deprecated properties and replacements
+	 *
+	 * @return array<string,string>  Old property to new property mapping
+	 */
+	protected function deprecatedProperties()
+	{
+		return array(
+			'paye' => 'paid',
+		) + parent::deprecatedProperties();
+	}
 
 	/**
 	 *	Constructor
@@ -334,7 +346,7 @@ class Salary extends CommonObject
 				$this->note				= $obj->note_private;
 				$this->note_private		= $obj->note_private;
 				$this->note_public		= $obj->note_public;
-				$this->paye 			= $obj->paye;
+				$this->paid 			= $obj->paye;
 				$this->status 			= $obj->paye;
 				$this->fk_bank          = $obj->fk_bank;
 				$this->fk_user_author   = $obj->fk_user_author;
