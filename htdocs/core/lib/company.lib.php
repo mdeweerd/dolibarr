@@ -1591,7 +1591,6 @@ function show_contacts($conf, $langs, $db, $object, $backtopage = '', $showuserl
 			$contactstatic->id = $obj->rowid;
 			$contactstatic->ref = $obj->rowid;
 			$contactstatic->status = $obj->statut;
-			$contactstatic->statut = $obj->statut;
 			$contactstatic->lastname = $obj->lastname;
 			$contactstatic->firstname = $obj->firstname;
 			$contactstatic->civility_id = $obj->civility_id;
