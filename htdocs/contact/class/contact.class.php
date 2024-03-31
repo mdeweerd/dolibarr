@@ -228,7 +228,7 @@ class Contact extends CommonObject
 	 * @var int  Status 0=inactive, 1=active
 	 * @deprecated Use $status
 	 */
-	public $statut;
+	public $status;
 
 	/**
 	 * @var string
@@ -384,7 +384,6 @@ class Contact extends CommonObject
 	public function __construct($db)
 	{
 		$this->db = $db;
-		$this->statut = 1; // By default, status is enabled
 		$this->status = 1; // By default, status is enabled
 		$this->ismultientitymanaged = 1;
 		$this->isextrafieldmanaged = 1;
@@ -506,12 +505,8 @@ class Contact extends CommonObject
 		if (empty($this->priv)) {
 			$this->priv = 0;
 		}
-		if (!empty($this->statut) && empty($this->status)) {
-			$this->status = 1;
-		}
 		if (empty($this->status)) {
 			$this->status = 0; // This is to convert '' into '0' to avoid bad sql request
-			$this->statut = 0; // This is to convert '' into '0' to avoid bad sql request
 		}
 
 		// setEntity will set entity with the right value if empty or change it for the right value if multicompany module is active
@@ -637,12 +632,8 @@ class Contact extends CommonObject
 		$this->zip = (empty($this->zip) ? '' : trim($this->zip));
 		$this->town = (empty($this->town) ? '' : trim($this->town));
 		$this->country_id = (empty($this->country_id) || $this->country_id < 0) ? 0 : $this->country_id;
-		if (!empty($this->statut) && empty($this->status)) {
-			$this->status = 1;
-		}
 		if (empty($this->status)) {
 			$this->status = 0;
-			$this->statut = 0;
 		}
 		if (empty($this->civility_code) && !is_numeric($this->civility_id)) {
 			$this->civility_code = $this->civility_id; // For backward compatibility
@@ -1106,8 +1097,7 @@ class Contact extends CommonObject
 				$this->socid		= $obj->fk_soc;		// Both fk_soc and socid are used
 				$this->socname		= $obj->socname;
 				$this->poste		= $obj->poste;
-				$this->status		= $obj->status;
-				$this->statut		= $obj->status; // deprecated
+				$this->status		= $obj->statut;
 
 				$this->fk_prospectlevel = $obj->fk_prospectlevel;
 
@@ -1785,14 +1775,10 @@ class Contact extends CommonObject
 		$error = 0;
 
 		// Check parameters
-		if (!empty($this->statut) && empty($this->status)) {
-			$this->status = 1;
-		}
 		if ($this->status == $status) {
 			return 0;
 		} else {
 			$this->status = $status;
-			$this->statut = $status;
 		}
 
 		$this->db->begin();
