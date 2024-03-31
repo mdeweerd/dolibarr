@@ -801,7 +801,6 @@ while ($i < $imaxinloop) {
 	$userstatic->login = $obj->login;
 	$userstatic->email = $obj->email;
 	$userstatic->socid = $obj->fk_soc;
-	$userstatic->statut = $obj->status;		// deprecated
 	$userstatic->status = $obj->status;
 	$userstatic->photo = $obj->photo;
 
