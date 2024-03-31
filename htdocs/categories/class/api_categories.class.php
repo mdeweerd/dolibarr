@@ -2,7 +2,7 @@
 /* Copyright (C) 2015       Jean-François Ferry     <jfefe@aternatik.fr>
  * Copyright (C) 2024       Jose MARTINEZ			<jose.martinez@pichinov.com>
  * Copyright (C) 2024       Frédéric France         <frederic.france@free.fr>
- * Copyright (C) 2025		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
  * Copyright (C) 2025       Charlene Benke          <charlene@patas-monkey.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -712,8 +712,9 @@ class Categories extends DolibarrApi
 	/**
 	 * Clean sensible object datas
 	 *
-	 * @param   Categorie  $object  Object to clean
-	 * @return  Object     			Object with cleaned properties
+	 * @template T of \Categorie
+	 * @param   T  $object		Object to clean
+	 * @return  T     			Object with cleaned properties
 	 */
 	protected function _cleanObjectDatas($object)
 	{
@@ -760,7 +761,7 @@ class Categories extends DolibarrApi
 		unset($object->fk_account);
 		unset($object->fk_project);
 		unset($object->note);
-		unset($object->statut);
+		unset($object->status);
 
 		return $object;
 	}
