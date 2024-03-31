@@ -121,10 +121,10 @@ class WebPortalOrder extends Commande
 	//public $multicurrency_total_tva;
 	//public $multicurrency_total_ttc;
 
-	/**
+	/*
 	 * @var int status
 	 */
-	public $fk_statut;
+	//public $fk_statut; // Managed in parent
 	// END MODULEBUILDER PROPERTIES
 
 
@@ -305,7 +305,7 @@ class WebPortalOrder extends Commande
 	 */
 	public function getLabelStatus($mode = 0)
 	{
-		return $this->LibStatut($this->fk_statut, $this->billed, $mode);
+		return $this->LibStatut($this->status, $this->billed, $mode);
 	}
 
 	/**
@@ -316,7 +316,7 @@ class WebPortalOrder extends Commande
 	 */
 	public function getLibStatut($mode = 0)
 	{
-		return $this->LibStatut($this->fk_statut, $this->billed, $mode);
+		return $this->LibStatut($this->status, $this->billed, $mode);
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
