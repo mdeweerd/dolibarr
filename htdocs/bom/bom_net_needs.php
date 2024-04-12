@@ -1,7 +1,7 @@
 <?php
 /* Copyright (C) 2017-2020  Laurent Destailleur     <eldy@users.sourceforge.net>
  * Copyright (C) 2019-2024  Frédéric France         <frederic.france@free.fr>
- * Copyright (C) 2025		MDW						<mdeweerd@users.noreply.github.com>
+ * Copyright (C) 2024-2025	MDW						<mdeweerd@users.noreply.github.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -259,6 +259,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print '</thead>';
 	print '<tbody>';
 	if (count($TChildBom) > 0) {
+		'@phan-var-force array<int,array{bom:BOM,parentid:int,level:int,qty:float,product:array<int,array{level:int,qty:float}>}> $TChildBom';
 		if ($action == 'treeview') {
 			foreach ($TChildBom as $fk_bom => $TProduct) {
 				$repeatChar = '&emsp;';
