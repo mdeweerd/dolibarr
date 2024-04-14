@@ -9143,16 +9143,16 @@ abstract class CommonObject
 	 *
 	 *  @param		string		$modulepart		'product', 'ticket', ...
 	 *  @param      string		$sdir        	Directory to scan (full absolute path)
-	 *  @param      int|string	$size        	0 or ''=original size, 1 or 'small'=use thumbnail if possible
+	 *  @param      int<0,1>|''|'small'	$size        	0 or ''=original size, 1 or 'small'=use thumbnail if possible
 	 *  @param      int			$nbmax       	Nombre maximum de photos (0=pas de max)
 	 *  @param      int			$nbbyrow     	Number of image per line or -1 to use div separator or 0 to use no separator. Used only if size=1 or 'small'.
-	 * 	@param		int			$showfilename	1=Show filename
-	 * 	@param		int			$showaction		1=Show icon with action links (resize, delete)
+	 * 	@param		int<0,1>	$showfilename	1=Show filename
+	 * 	@param		int<0,1>	$showaction		1=Show icon with action links (resize, delete)
 	 * 	@param		int			$maxHeight		Max height of original image when size='small' (so we can use original even if small requested). If 0, always use 'small' thumb image.
 	 * 	@param		int			$maxWidth		Max width of original image when size='small'
-	 *  @param      int     	$nolink         Do not add a href link to view enlarged imaged into a new tab
+	 *  @param      int<0,1>   	$nolink         Do not add a href link to view enlarged imaged into a new tab
 	 *  @param      int|string  $overwritetitle Do not add title tag on image
-	 *  @param		int			$usesharelink	Use the public shared link of image (if not available, the 'nophoto' image will be shown instead)
+	 *  @param		int<0,1>	$usesharelink	Use the public shared link of image (if not available, the 'nophoto' image will be shown instead)
 	 *  @param		string		$cache			A string if we want to use a cached version of image
 	 *  @param		string		$addphotorefcss	Add CSS to img of photos
 	 *  @return     string						Html code to show photo. Number of photos shown is saved in this->nbphoto
