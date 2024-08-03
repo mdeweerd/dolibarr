@@ -1187,6 +1187,7 @@ class Orders extends DolibarrApi
 	 * @phan-param Object  $object
 	 * @return  T              Object with cleaned properties
 	 * @phan-return Object
+	 * @suppress PhanTemplateTypeNotUsedInFunctionReturn
 	 */
 	protected function _cleanObjectDatas($object)
 	{
