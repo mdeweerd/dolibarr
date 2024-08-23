@@ -840,7 +840,7 @@ return [
         'htdocs/hrm/compare.php' => ['PhanPluginUnknownArrayFunctionParamType', 'PhanPluginUnknownArrayFunctionReturnType'],
         'htdocs/hrm/core/tpl/objectline_view.tpl.php' => ['PhanPluginEmptyStatementIf', 'PhanPossiblyUndeclaredGlobalVariable', 'PhanUndeclaredGlobalVariable', 'PhanUndeclaredProperty'],
         'htdocs/hrm/core/tpl/skilldet.fiche.tpl.php' => ['PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredGlobalVariable'],
-        'htdocs/hrm/evaluation_card.php' => ['PhanPluginUnknownObjectMethodCall', 'PhanTypeMismatchArgumentProbablyReal', 'PhanUndeclaredGlobalVariable'],
+        'htdocs/hrm/evaluation_card.php' => ['PhanPluginUnknownObjectMethodCall', 'PhanTypeMismatchArgumentProbablyReal'],
         'htdocs/hrm/evaluation_list.php' => ['PhanTypeMismatchArgumentProbablyReal'],
         'htdocs/hrm/index.php' => ['PhanTypeMismatchArgumentProbablyReal'],
         'htdocs/hrm/job_agenda.php' => ['PhanPossiblyUndeclaredGlobalVariable'],
