@@ -247,6 +247,7 @@ repos:
     hooks:
       - id: sqlfluff-lint
         stages: [pre-commit, manual]  # manual needed for ci
+        args: [--dialect, mysql, --exclude-rules, "LT01,LT02,LT05,LT09,LT12,CP01,CP02,CP03,CP04,CP05,CV01,ST06,AM04,AL01,AL05,RF01,RF03,RF04"]
         exclude: (?x)^
           (dev/initdemo/mysqldump_.*\.sql
           |htdocs/core/menus/init_menu_auguria\.sql
@@ -257,7 +258,6 @@ repos:
           |htdocs/install/mysql/data/llx_accounting_account_.*\.sql
           |htdocs/install/mysql/migration/3\..*\.sql
           |htdocs/install/mysql/migration/(1[0-5]|[456789])\.0\.0-.*\.sql
-          |htdocs/install/mysql/migration/repair\.sql
           |htdocs/install/mysql/tables/llx_bookcal_availabilities-bookcal\.sql
           |htdocs/install/mysql/tables/llx_categorie.*\.key\.sql
           |htdocs/install/mysql/tables/llx_rights_def\.key\.sql

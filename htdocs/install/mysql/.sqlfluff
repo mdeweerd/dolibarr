@@ -1,0 +1,3 @@
+[sqlfluff]
+dialect = mysql
+large_file_skip_byte_limit=1000000
