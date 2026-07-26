@@ -16,6 +16,17 @@ DB_USER=${DB_USER:=travis}
 DB_PASS=${DB_PASS:=password}
 DB_CACHE_FILE="${TRAVIS_BUILD_DIR}/db_init.sql"
 
+# Check if SQLite3 PHP module is enabled
+if [ "$DB" = 'sqlite3' ]; then
+	if ! "${PHP}" -m | grep -q sqlite3; then
+		echo "ERROR: SQLite3 PHP module is not enabled!"
+		echo "Please install/enable the SQLite3 module for PHP and try again."
+		echo "On Ubuntu/Debian: sudo apt-get install php-sqlite3"
+		echo "On RHEL/CentOS: sudo yum install php-sqlite3"
+		exit 1
+	fi
+fi
+
 TRAVIS_DOC_ROOT_PHP="${TRAVIS_DOC_ROOT_PHP:=$TRAVIS_BUILD_DIR/htdocs}"
 TRAVIS_DATA_ROOT_PHP="${TRAVIS_DATA_ROOT_PHP:=$TRAVIS_BUILD_DIR/documents}"
 
@@ -109,6 +120,10 @@ else
 			echo '$'dolibarr_main_db_port=5432';'
 			echo '$'dolibarr_main_db_user=\'postgres\'';'
 			echo '$'dolibarr_main_db_pass=\'postgres\'';'
+		fi
+		if [ "$DB" = 'sqlite3' ]; then
+			echo '$'"dolibarr_main_db_type='""$DB""';"
+			echo '$'dolibarr_main_db_port=0';'
 		fi
 		if [ "${DB_PREFIX}" != '' ]; then
 			echo '$'"dolibarr_main_db_prefix='${DB_PREFIX}'"';'
@@ -271,7 +286,9 @@ if [ "$load_cache" != "1" ] ; then
 			pVer="$v"
 		done
 
-		sed "s/ llx_/ ${DB_PREFIX}/g" <"${TRAVIS_BUILD_DIR}/htdocs/install/mysql/migration/repair.sql" |  eval ${SUDO} "${MYSQL}" --force ${USERPASS_OPT} -h 127.0.0.1 -D travis
+		if [ "$DB" != 'sqlite3' ]; then
+			sed "s/ llx_/ ${DB_PREFIX}/g" <"${TRAVIS_BUILD_DIR}/htdocs/install/mysql/migration/repair.sql" |  eval ${SUDO} "${MYSQL}" --force ${USERPASS_OPT} -h 127.0.0.1 -D travis
+		fi
 
 		# Apply repair options:
 		# Excluded options: force_utf8_on_tables force_utf8mb4_on_tables rebuild_sequences ; do
