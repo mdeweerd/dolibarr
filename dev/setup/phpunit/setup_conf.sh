@@ -6,6 +6,7 @@ ME=$(realpath "$0")
 TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR:=$(realpath "$(dirname "$0")/../../..")}
 MYSQL=${MYSQL:=mysql}
 MYSQLDUMP=${MYSQLDUMP:="${MYSQL}dump"}
+SQLITE3=${SQLITE3:=sqlite3}
 PHP=${PHP:=php}
 PHP_OPT="-d error_reporting=32767"
 
@@ -45,9 +46,13 @@ CONF_FILE=${CONF_FILE:=${TRAVIS_BUILD_DIR}/htdocs/conf/conf.php}
 function save_db_cache() (
 	rm "${DB_CACHE_FILE}".md5 2>/dev/null
 	echo "Saving DB to cache file '${DB_CACHE_FILE}'"
+	if [ "$DB" = "sqlite3" ] ; then
+		"${SQLITE3}" "${TRAVIS_DATA_ROOT_PHP}/database_travis.sdb" .dump > "${DB_CACHE_FILE}"
+	else
 	eval ${SUDO} "${MYSQLDUMP}" ${USERPASS_OPT} -h 127.0.0.1 travis \
 		--hex-blob --lock-tables=false --skip-add-locks \
-		| sed -e 's/DEFINER=[^ ]* / /' > ${DB_CACHE_FILE}
+		| sed -e 's/DEFINER=[^ ]* / /' > "${DB_CACHE_FILE}"
+	fi
 	echo "${sum}" > "${DB_CACHE_FILE}".md5
 )
 
@@ -88,6 +93,7 @@ function save_db_cache() (
 	# From here on, the DB_PREFIX can not be empty, set default value if empty
 }
 
+
 DB_PREFIX="${DB_PREFIX:=llx${last_major}_}"
 
 if [ "${DB_USER}" = travis ] && [ -r "${CONF_FILE}" ] ; then
@@ -106,6 +112,8 @@ else
 		echo '$'dolibarr_main_url_root=\'http://127.0.0.1\'';'
 		echo '$'dolibarr_main_document_root=\'${TRAVIS_DOC_ROOT_PHP}\'';'
 		echo '$'dolibarr_main_data_root=\'${TRAVIS_DATA_ROOT_PHP}\'';'
+		echo '$'dolibarr_main_document_root=__DIR__.\'/..\'';'
+		echo '$'dolibarr_main_data_root=__DIR__.\'/../../documents\'';'
 		echo '$'dolibarr_main_db_host=\'127.0.0.1\'';'
 		echo '$'dolibarr_main_db_name=\'travis\'';'
 		echo '$'dolibarr_main_instance_unique_id=\'travis1234567890\'';'
@@ -236,6 +244,44 @@ elif [ "$DB" = 'postgresql' ]; then
 	psql postgresql://postgres:postgres@127.0.0.1:5432 -c 'GRANT ALL PRIVILEGES ON DATABASE travis TO travis;'
 
 	psql postgresql://postgres:postgres@127.0.0.1:5432 -l -A
+elif [ "$DB" = 'sqlite3' ]; then
+	echo "Loading initial SQL for SQLite3"
+	# Use PHP to run the SQL dump file through Dolibarr's run_sql function
+	cd "${TRAVIS_BUILD_DIR}/htdocs"
+	{
+		LOAD_SQLITE_SCRIPT=$(mktemp)
+		cat > "$LOAD_SQLITE_SCRIPT" << EOPHP
+<?php
+        include_once '${TRAVIS_DOC_ROOT_PHP}/install/inc.php';
+        require_once '${CONF_FILE}';
+        // require_once DOL_DOCUMENT_ROOT.'/core/class/commonhookactions.class.php';
+        // require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+        require_once DOL_DOCUMENT_ROOT.'/core/lib/website.lib.php'; // For dolKeepOnlyPhpCode() used in run_sql()
+        require_once DOL_DOCUMENT_ROOT.'/core/lib/website2.lib.php'; // For checkPHPCode() used in dolKeepOnlyPhpCode()
+        require_once DOL_DOCUMENT_ROOT.'/core/db/${DB}.class.php';
+
+        global \$db, \$conf;
+
+        // Initialize database connection
+        \$db = new DoliDBSqlite3('', '${TRAVIS_DATA_ROOT_PHP}', '', '', 'travis');
+        if (!\$db->connected) {
+            die('Failed to connect to SQLite database: ' . \$db->lasterror . '\\n');
+        }
+
+        // Replace table prefixes in the SQL file
+        \$sqlfile = '${TRAVIS_BUILD_DIR}/dev/initdemo/mysqldump_dolibarr_3.5.0.sql';
+        \$tmpfile = tempnam(sys_get_temp_dir(), 'sqlite');
+        // Apply prefix substitution and filter out /* comment lines
+        system("sed 's/llx_/${DB_PREFIX}/g' < " . escapeshellarg(\$sqlfile) . " | grep -vP '^(/[*]|-- |LOCK |UNLOCK )' > " . escapeshellarg(\$tmpfile));
+
+        // Run the SQL
+        run_sql(\$tmpfile, 1);
+        unlink(\$tmpfile);
+        echo "SQL loaded successfully\\n";
+EOPHP
+		{ cd "${TRAVIS_DOC_ROOT_PHP}/install" ; "$PHP" $PHP_OPT "$LOAD_SQLITE_SCRIPT" ; }
+		rm "$LOAD_SQLITE_SCRIPT"
+	} | tee "${TRAVIS_BUILD_DIR}/initial_350.log"
 fi
 
 
@@ -261,6 +307,9 @@ set +e
 		echo '$'force_install_type=\'pgsql\'';'
 		echo '$'force_install_port=5432';'
 	fi
+	if [ "$DB" = 'sqlite3' ]; then
+		echo '$'force_install_type=\'sqlite3\'';'
+	fi
 	echo '$'force_install_dbserver=\'127.0.0.1\'';'
 	echo '$'force_install_database=\'travis\'';'
 	echo '$'"force_install_databaselogin='${DB_USER}'"';'
@@ -275,10 +324,12 @@ set +e
 if [ "$load_cache" != "1" ] ; then
 	(
 
+		cd "${TRAVIS_DOC_ROOT_PHP}/install"
 
 		# Proceed with the upgrade process
 		pVer=${VERSIONS[0]}
 		for v in "${VERSIONS[@]:1}" ; do
+			echo "Upgrade to ${pVer}"
 			LOGNAME="${TRAVIS_BUILD_DIR}/upgrade${pVer//./}${v//./}"
 			"${PHP}" $PHP_OPT upgrade.php "$pVer" "$v" ignoredbversion > "${LOGNAME}.log"
 			"${PHP}" $PHP_OPT upgrade2.php "$pVer" "$v" ignoredbversion > "${LOGNAME}-2.log"
