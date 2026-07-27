@@ -778,8 +778,8 @@ class DoliDBSqlite3 extends DoliDB
 					$this->begin();
 
 					// Create new temporary table first (don't rename original yet)
-					$this->query($newDesc);
-					if ($this->error) {
+					$res = $this->query($newDesc);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
@@ -792,23 +792,23 @@ class DoliDBSqlite3 extends DoliDB
 						$oldColumnList[] = $col['name'];
 					}
 					if (!empty($oldColumnList)) {
-						$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
-						if ($this->error) {
+						$res = $this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+						if ($res === false) {
 							$this->rollback();
 							return $this->query("SELECT 0");
 						}
 					}
 
 					// Drop original table
-					$this->query("DROP TABLE " . $tablename);
-					if ($this->error) {
+					$res = $this->query("DROP TABLE " . $tablename);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
 
 					// Rename new table to original name
-					$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
-					if ($this->error) {
+					$res = $this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
@@ -844,8 +844,8 @@ class DoliDBSqlite3 extends DoliDB
 				// Start transaction for safety (note: DDL will auto-commit in SQLite)
 				$this->begin();
 
-				$this->query($newDesc);
-				if ($this->error) {
+				$res = $this->query($newDesc);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -859,23 +859,23 @@ class DoliDBSqlite3 extends DoliDB
 					}
 				}
 				if (!empty($oldColumnList)) {
-					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
-					if ($this->error) {
+					$res = $this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
 				}
 
 				// Drop original table
-				$this->query("DROP TABLE " . $tablename);
-				if ($this->error) {
+				$res = $this->query("DROP TABLE " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
 
 				// Rename new table to original name
-				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
-				if ($this->error) {
+				$res = $this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -926,8 +926,8 @@ class DoliDBSqlite3 extends DoliDB
 				// Start transaction for safety (note: DDL will auto-commit in SQLite)
 				$this->begin();
 
-				$this->query($newDesc);
-				if ($this->error) {
+				$res = $this->query($newDesc);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -939,23 +939,23 @@ class DoliDBSqlite3 extends DoliDB
 					$oldColumnList[] = $col['name'];
 				}
 				if (!empty($oldColumnList)) {
-					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
-					if ($this->error) {
+					$res = $this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
 				}
 
 				// Drop original table
-				$this->query("DROP TABLE " . $tablename);
-				if ($this->error) {
+				$res = $this->query("DROP TABLE " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
 
 				// Rename new table to original name
-				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
-				if ($this->error) {
+				$res = $this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -996,8 +996,8 @@ class DoliDBSqlite3 extends DoliDB
 				$this->begin();
 
 				// Create new table with constraint first
-				$this->query($newDesc);
-				if ($this->error) {
+				$res = $this->query($newDesc);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -1009,23 +1009,23 @@ class DoliDBSqlite3 extends DoliDB
 					$oldColumnList[] = $col['name'];
 				}
 				if (!empty($oldColumnList)) {
-					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
-					if ($this->error) {
+					$res = $this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($res === false) {
 						$this->rollback();
 						return $this->query("SELECT 0");
 					}
 				}
 
 				// Drop original table
-				$this->query("DROP TABLE " . $tablename);
-				if ($this->error) {
+				$res = $this->query("DROP TABLE " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
 
 				// Rename new table to original name
-				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
-				if ($this->error) {
+				$res = $this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($res === false) {
 					$this->rollback();
 					return $this->query("SELECT 0");
 				}
@@ -2306,7 +2306,7 @@ class DoliDBSqlite3 extends DoliDB
 	 * Returns 0 = Monday, 1 = Tuesday, ... 6 = Sunday
 	 *
 	 * @param	string	$date	Date string
-	 * @return	int				Weekday (0-6)
+	 * @return	int|null		Weekday (0-6) or null if date is empty
 	 */
 	public static function dbWEEKDAY($date)
 	{
@@ -2324,7 +2324,7 @@ class DoliDBSqlite3 extends DoliDB
 	 *
 	 * @param	string	$date	Date string
 	 * @param	string	$format	MySQL date format string
-	 * @return	string			Formatted date
+	 * @return	string|null		Formatted date or null if date is empty
 	 */
 	public static function dbdateformat($date, $format)
 	{
@@ -2517,7 +2517,7 @@ class DoliDBSqlite3 extends DoliDB
 			$num -= floor(($month * 4 + 23) / 10);
 		}
 		$temp = floor(($y / 100 + 1) * 3 / 4);
-		return $num + floor($y / 4) - $temp;
+		return (int) ($num + floor($y / 4) - $temp);
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
@@ -2532,14 +2532,14 @@ class DoliDBSqlite3 extends DoliDB
 	{
 		// phpcs:enable
 		$ret = floor(($daynr + 5 + ($sunday_first_day_of_week ? 1 : 0)) % 7);
-		return $ret;
+		return (int) $ret;
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
 	 * calc_days_in_year
 	 *
-	 * @param 	string	$year		Year
+	 * @param 	int	$year		Year
 	 * @return	int					Nb of days in year
 	 */
 	private static function calc_days_in_year($year)
@@ -2594,6 +2594,6 @@ class DoliDBSqlite3 extends DoliDB
 				return 1;
 			}
 		}
-		return floor($days / 7 + 1);
+		return (int) floor($days / 7 + 1);
 	}
 }
