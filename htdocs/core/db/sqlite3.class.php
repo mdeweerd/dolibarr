@@ -745,7 +745,7 @@ class DoliDBSqlite3 extends DoliDB
 					$tmpTableName = 'tmp_' . $tablename;
 					$newDesc = substr($descTable, 0, $pos) . ', ' . $columnDef . substr($descTable, $pos);
 					// Replace the table name with the temporary name in the CREATE TABLE statement
-					$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+					$newDesc = preg_replace('/\b' . preg_quote($tablename, '/') . '\b/', $tmpTableName, $newDesc, 1);
 
 					// Start transaction for safety (note: DDL will auto-commit in SQLite)
 					$this->begin();
@@ -805,14 +805,14 @@ class DoliDBSqlite3 extends DoliDB
 				// Remove the column from the CREATE TABLE statement
 				// This is tricky - we need to parse and remove the column definition
 				// For now, use the rename approach: create new table without the column
-				$newDesc = preg_replace('/\s*,\s*' . preg_quote($columnName) . '\s+[^,)]+/', '', $descTable);
+				$newDesc = preg_replace('/\s*,\s*' . preg_quote($columnName, '/') . '\s+[^,)]+/', '', $descTable);
 				// Clean up double commas
 				$newDesc = preg_replace('/,\s*,/', ',', $newDesc);
 
 				// Create new temporary table first (don't rename original yet)
 				$tmpTableName = 'tmp_' . $tablename;
 				// Replace the table name with the temporary name in the CREATE TABLE statement
-				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+				$newDesc = preg_replace('/\b' . preg_quote($tablename, '/') . '\b/', $tmpTableName, $newDesc, 1);
 
 				// Start transaction for safety (note: DDL will auto-commit in SQLite)
 				$this->begin();
@@ -888,13 +888,13 @@ class DoliDBSqlite3 extends DoliDB
 				$newDesc = $descTable;
 				// Find the column name in the CREATE TABLE statement
 				// and replace everything after it until the next comma or closing paren
-				$pattern = '/(\b' . preg_quote($columnName) . '\b)(\s+[^,)]+)/i';
+				$pattern = '/(\b' . preg_quote($columnName, '/') . '\b)(\s+[^,)]+)/i';
 				$newDesc = preg_replace($pattern, '\1 ' . $newType, $newDesc);
 
 				// Create new temporary table first (don't rename original yet)
 				$tmpTableName = 'tmp_' . $tablename;
 				// Replace the table name with the temporary name in the CREATE TABLE statement
-				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+				$newDesc = preg_replace('/\b' . preg_quote($tablename, '/') . '\b/', $tmpTableName, $newDesc, 1);
 
 				// Start transaction for safety (note: DDL will auto-commit in SQLite)
 				$this->begin();
@@ -963,7 +963,7 @@ class DoliDBSqlite3 extends DoliDB
 				// Add closing parenthesis for SQL query
 				$newDesc .= ')';
 				// Replace the table name with the temporary name in the CREATE TABLE statement
-				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+				$newDesc = preg_replace('/\b' . preg_quote($tablename, '/') . '\b/', $tmpTableName, $newDesc, 1);
 
 				// Start transaction for safety (note: DDL will auto-commit in SQLite)
 				$this->begin();
