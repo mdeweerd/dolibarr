@@ -473,15 +473,7 @@ class DoliDBSqlite3 extends DoliDB
 		// form the separator is dropped (SQLite then falls back to its default ',').
 		$line = preg_replace_callback(
 			'/\bGROUP_CONCAT\s*\(\s*(DISTINCT\s+)?(.+?)\s+SEPARATOR\s+(\'[^\']*\'|"[^"]*"|\S+?)\s*\)/i',
-			function ($reg) {
-				if (trim($reg[1]) !== '') {
-					if ($reg[3] !== "','" && $reg[3] !== '","') {
-						dol_syslog("DoliDBSqlite3::convertSQLFromMysql GROUP_CONCAT DISTINCT with custom separator unsupported by SQLite, falling back to ','", LOG_WARNING);
-					}
-					return "GROUP_CONCAT(DISTINCT ".$reg[2].")";
-				}
-				return "GROUP_CONCAT(".$reg[2].", ".$reg[3].")";
-			},
+			[__CLASS__, 'convertGroupConcat'],
 			$line
 		);
 
@@ -496,16 +488,7 @@ class DoliDBSqlite3 extends DoliDB
 		// (a nested NOW() is converted to datetime('now') by the rule below)
 		$line = preg_replace_callback(
 			'/\bDATE_(ADD|SUB)\s*\(\s*(.+?)\s*,\s*INTERVAL\s+(\S+)\s+(\w+)\s*\)/i',
-			function ($reg) {
-				$sign = (strtoupper($reg[1]) === 'SUB') ? '-' : '+';
-				$modifier = self::sqliteIntervalModifier($sign, $reg[3], $reg[4]);
-				if ($modifier === null) {
-					// Unsupported unit/value: leave untouched rather than emit wrong data.
-					dol_syslog("DoliDBSqlite3::convertSQLFromMysql untranslated INTERVAL: ".$reg[0], LOG_WARNING);
-					return $reg[0];
-				}
-				return "datetime(".$reg[2].", '".$modifier."')";
-			},
+			[__CLASS__, 'convertDateInterval'],
 			$line
 		);
 
@@ -513,19 +496,7 @@ class DoliDBSqlite3 extends DoliDB
 		// MySQL: EXTRACT(YEAR FROM d) -> SQLite: YEAR(d)
 		$line = preg_replace_callback(
 			'/\bEXTRACT\s*\(\s*(\w+)\s+FROM\s+(.+?)\s*\)/i',
-			function ($reg) {
-				$map = array(
-					'YEAR' => 'YEAR', 'MONTH' => 'MONTH', 'DAY' => 'DAY',
-					'HOUR' => 'HOUR', 'MINUTE' => 'MINUTE', 'SECOND' => 'SECOND',
-					'QUARTER' => 'QUARTER', 'WEEK' => 'WEEK',
-				);
-				$unit = strtoupper($reg[1]);
-				if (!isset($map[$unit])) {
-					dol_syslog("DoliDBSqlite3::convertSQLFromMysql untranslated EXTRACT unit: ".$reg[1], LOG_WARNING);
-					return $reg[0];
-				}
-				return $map[$unit].'('.$reg[2].')';
-			},
+			[__CLASS__, 'convertExtract'],
 			$line
 		);
 
@@ -572,6 +543,68 @@ class DoliDBSqlite3 extends DoliDB
 			default:
 				return null;
 		}
+	}
+
+	/**
+	 * Callback for GROUP_CONCAT conversion in convertSQLFromMysql
+	 * Converts MySQL GROUP_CONCAT to SQLite equivalent
+	 * @param array<int, string> $reg Regex matches from preg_replace_callback
+	 * @return string Converted SQL
+	 */
+	/**
+	 * Callback for GROUP_CONCAT conversion in convertSQLFromMysql
+	 * Converts MySQL GROUP_CONCAT to SQLite equivalent
+	 * @param array<int, string> $reg Regex matches from preg_replace_callback
+	 * @return string Converted SQL
+	 */
+	private static function convertGroupConcat($reg)
+	{
+		if (trim($reg[1]) !== '') {
+			if ($reg[3] !== "','" && $reg[3] !== '","') {
+				dol_syslog("DoliDBSqlite3::convertSQLFromMysql GROUP_CONCAT DISTINCT with custom separator unsupported by SQLite, falling back to ','", LOG_WARNING);
+			}
+			return "GROUP_CONCAT(DISTINCT ".$reg[2].")";
+		}
+		return "GROUP_CONCAT(".$reg[2].", ".$reg[3].")";
+	}
+
+	/**
+	 * Callback for DATE_ADD/DATE_SUB conversion in convertSQLFromMysql
+	 * Converts MySQL DATE_ADD/DATE_SUB with INTERVAL to SQLite datetime()
+	 * @param array<int, string> $reg Regex matches from preg_replace_callback
+	 * @return string Converted SQL
+	 */
+	private static function convertDateInterval($reg)
+	{
+		$sign = (strtoupper($reg[1]) === 'SUB') ? '-' : '+';
+		$modifier = self::sqliteIntervalModifier($sign, $reg[3], $reg[4]);
+		if ($modifier === null) {
+			// Unsupported unit/value: leave untouched rather than emit wrong data.
+			dol_syslog("DoliDBSqlite3::convertSQLFromMysql untranslated INTERVAL: ".$reg[0], LOG_WARNING);
+			return $reg[0];
+		}
+		return "datetime(".$reg[2].", '".$modifier."')";
+	}
+
+	/**
+	 * Callback for EXTRACT conversion in convertSQLFromMysql
+	 * Converts MySQL EXTRACT(unit FROM expr) to SQLite shim functions
+	 * @param array<int, string> $reg Regex matches from preg_replace_callback
+	 * @return string Converted SQL
+	 */
+	private static function convertExtract($reg)
+	{
+		$map = array(
+			'YEAR' => 'YEAR', 'MONTH' => 'MONTH', 'DAY' => 'DAY',
+			'HOUR' => 'HOUR', 'MINUTE' => 'MINUTE', 'SECOND' => 'SECOND',
+			'QUARTER' => 'QUARTER', 'WEEK' => 'WEEK',
+		);
+		$unit = strtoupper($reg[1]);
+		if (!isset($map[$unit])) {
+			dol_syslog("DoliDBSqlite3::convertSQLFromMysql untranslated EXTRACT unit: ".$reg[1], LOG_WARNING);
+			return $reg[0];
+		}
+		return $map[$unit].'('.$reg[2].')';
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
