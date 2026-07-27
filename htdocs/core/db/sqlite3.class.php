@@ -2545,6 +2545,7 @@ class DoliDBSqlite3 extends DoliDB
 	private static function calc_days_in_year($year)
 	{
 		// phpcs:enable
+		$year = (int) $year;
 		return (($year & 3) == 0 && ($year % 100 || ($year % 400 == 0 && $year)) ? 366 : 365);
 	}
 
