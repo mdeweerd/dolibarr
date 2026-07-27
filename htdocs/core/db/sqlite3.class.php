@@ -551,12 +551,6 @@ class DoliDBSqlite3 extends DoliDB
 	 * @param array<int, string> $reg Regex matches from preg_replace_callback
 	 * @return string Converted SQL
 	 */
-	/**
-	 * Callback for GROUP_CONCAT conversion in convertSQLFromMysql
-	 * Converts MySQL GROUP_CONCAT to SQLite equivalent
-	 * @param array<int, string> $reg Regex matches from preg_replace_callback
-	 * @return string Converted SQL
-	 */
 	private static function convertGroupConcat($reg)
 	{
 		if (trim($reg[1]) !== '') {
@@ -2129,7 +2123,7 @@ class DoliDBSqlite3 extends DoliDB
 	 * SQLite custom function: MONTH(date)
 	 *
 	 * @param	string	$date	Date string
-	 * @return	int				Month number (1-12)
+	 * @return	int|null				Month number (1-12) or null if date is empty
 	 */
 	public static function dbMONTH($date)
 	{
@@ -2143,7 +2137,7 @@ class DoliDBSqlite3 extends DoliDB
 	 * SQLite custom function: YEAR(date)
 	 *
 	 * @param	string	$date	Date string
-	 * @return	int				Year number (e.g. 2026)
+	 * @return	int|null				Year number (e.g. 2026) or null if date is empty
 	 */
 	public static function dbYEAR($date)
 	{
@@ -2292,7 +2286,7 @@ class DoliDBSqlite3 extends DoliDB
 	 *
 	 * @param	string	$date	Date string
 	 * @param	int		$mode	Week mode (0-7)
-	 * @return	int				Week number
+	 * @return	int|null				Week number or null if date is empty
 	 */
 	public static function dbWEEK($date, $mode = 0)
 	{
@@ -2558,12 +2552,12 @@ class DoliDBSqlite3 extends DoliDB
 	/**
 	 * calc_week
 	 *
-	 * @param 	string	$year				Year
-	 * @param 	string	$month				Month
-	 * @param 	string	$day				Day
-	 * @param 	string	$week_behaviour		Week behaviour
-	 * @param 	string	$calc_year			???
-	 * @return	string						???
+	 * @param 	int	$year				Year
+	 * @param 	int	$month				Month
+	 * @param 	int	$day				Day
+	 * @param 	int	$week_behaviour		Week behaviour
+	 * @param 	int	$calc_year			Output year (passed by reference)
+	 * @return	int						Week number
 	 */
 	private static function calc_week($year, $month, $day, $week_behaviour, &$calc_year)
 	{
