@@ -2385,7 +2385,7 @@ class DoliDBSqlite3 extends DoliDB
 	 */
 	public static function dbLOCATE(...$args)
 	{
-		if (!isset($args[0], $args[1]) || $args[0] === null || $args[1] === null) {
+		if (!isset($args[0], $args[1])) {
 			return null;
 		}
 		$substr = (string) $args[0];
