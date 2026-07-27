@@ -67,9 +67,9 @@ class DoliDBSqlite3 extends DoliDB
 	 *
 	 *  @param      string	$type		Type of database (mysql, pgsql...). Not used.
 	 *  @param	    string	$host		Address of database server
-	 *  @param	    string	$user		Nom de l'utilisateur autorise
+	 *  @param	    string	$user		Authorized username
 	 *  @param	    string	$pass		Password
-	 *  @param	    string	$name		Nom de la database
+	 *  @param	    string	$name		Database name
 	 *  @param	    int		$port		Port of database server
 	 */
 	public function __construct($type, $host, $user, $pass, $name = '', $port = 0)  // @phpstan-ignore constructor.unusedParameter
@@ -106,11 +106,11 @@ class DoliDBSqlite3 extends DoliDB
 			$this->connected = false;
 			$this->ok = false;
 			$this->error=$langs->trans("ErrorWrongHostParameter");
-			dol_syslog(get_class($this)."::DoliDBSqlite3 : Erreur Connect, wrong host parameters",LOG_ERR);
+			dol_syslog(get_class($this)."::DoliDBSqlite3 : Error Connect, wrong host parameters",LOG_ERR);
 			return;
 		}*/
 
-		// Essai connection serveur
+		// Try server connection
 		// We do not try to connect to database, only to server. Connect to database is done later in constructor
 		$this->db = $this->connect($host, $user, $pass, $name, $port);
 
@@ -138,7 +138,7 @@ class DoliDBSqlite3 extends DoliDB
 	 *  Convert a SQL request in Mysql syntax to native syntax
 	 *
 	 *  @param     string	$line   SQL request line to convert
-	 *  @param     string	$type	Type of SQL order ('ddl' for insert, update, select, delete or 'dml' for create, alter...)
+	 *  @param     string	$type	Type of SQL query ('ddl' for insert, update, select, delete or 'dml' for create, alter...)
 	 *  @return    string   		SQL request line converted
 	 */
 	public function convertSQLFromMysql($line, $type = 'ddl')
@@ -172,17 +172,38 @@ class DoliDBSqlite3 extends DoliDB
 					$type = 'dml';
 				} elseif (preg_match('/DROP TABLE/i', $line)) {
 					$type = 'dml';
+				} elseif (preg_match('/^(INSERT|UPDATE|DELETE|REPLACE)/i', $line)) {
+					$type = 'dml';
 				}
 			}
 
 			if ($type == 'dml') {
-				// Remove inline comments (-- ...) before replacing whitespace
-				// This prevents comments from breaking when newlines are converted to spaces
-				$line = preg_replace('/--[^\n]*$/m', '', $line);
+				// Convert MySQL literal escape sequences to actual characters
+				// \n -> actual newline, \r -> actual carriage return, \t -> actual tab
+				// SQLite supports these in string literals, so we keep them as-is
+				$line = preg_replace('/\\\\n/', "\n", $line);
+				$line = preg_replace('/\\\\r/', "\r", $line);
+				$line = preg_replace('/\\\\t/', "\t", $line);
 
-				$line = preg_replace('/\s/', ' ', $line); // Replace tabulation with space
+				// Replace only tabs with spaces (preserve newlines and multiple spaces in strings)
+				$line = preg_replace('/\t/', ' ', $line);
+
+				// Remove stray semicolons from inside CREATE TABLE statements
+				// Handle cases like "height float;, height_unit int" -> "height float, height_unit int"
+				$line = preg_replace('/;\s*,/i', ',', $line);
+				// Handle cases like "height float; height_unit int" -> "height float height_unit int"
+				$line = preg_replace('/;\s+/i', ' ', $line);
+				// Also handle malformed cases like "double(24,8);,8)" by removing the semicolon and bare number
+				// This pattern matches: semicolon, optional whitespace, comma, optional whitespace, digits, optional whitespace, closing paren
+				$line = preg_replace('/;\s*,\s*\d+\s*\\)/i', ')', $line);
+				// Handle cases like "column type;)" -> "column type)"
+				$line = preg_replace('/;\s*\\)/i', ')', $line);
 
 				// we are inside create table statement so let's process datatypes
+				// Remove trailing commas (with optional whitespace) before closing paren or end of line
+				$line = preg_replace('/,\s*\)/', ')', $line);
+				$line = preg_replace('/,\s*$/', '', $line);
+
 				if (preg_match('/(ISAM|innodb)/i', $line)) { // end of create table sequence
 					$line = preg_replace('/\)[\s\t]*type[\s\t]*=[\s\t]*(MyISAM|innodb)[^;]*;/i', ');', $line);
 					$line = preg_replace('/\)[\s\t]*engine[\s\t]*=[\s\t]*(MyISAM|innodb)[^;]*;/i', ');', $line);
@@ -206,6 +227,8 @@ class DoliDBSqlite3 extends DoliDB
 				$line = preg_replace('/(int\w+|smallint)\s+unsigned/i', '\\1', $line);
 
 				// blob -> text
+				// Remove length specifiers from integer types: int(11) -> int
+				$line = preg_replace('/(int|tinyint|smallint|mediumint|bigint|varchar|char|nvarchar)\([^)]*\)/i', '\1', $line);
 				$line = preg_replace('/\w*blob/i', 'text', $line);
 
 				// tinytext/mediumtext -> text
@@ -222,6 +245,15 @@ class DoliDBSqlite3 extends DoliDB
 				$line = preg_replace('/DEFAULT CURRENT_TIMESTAMP/i', 'DEFAULT CURRENT_TIMESTAMP', $line);
 
 				// Remove inline COMMENT 'xxx' (not supported in SQLite)
+				// Remove backticks (MySQL uses them, SQLite does not)
+				$line = preg_replace('/`([^`]+)`/', '\1', $line);
+				// Convert MySQL escaped single quotes (\') to SQLite doubled single quotes ('')
+				// MySQL: 'it\'s' -> SQLite: 'it''s'
+				// This must be done after backtick removal to avoid confusion
+				$line = preg_replace("/\\\'/", "''", $line);
+				// Also handle other MySQL escape sequences that SQLite doesn't support
+				// Convert escaped backslash (\\ -> \) - MySQL uses two backslashes to represent one
+				$line = preg_replace('/\\\\/', '\\', $line);
 				$line = preg_replace('/\s+COMMENT\s+\'[^\']*\'/i', '', $line);
 
 				// double -> numeric
@@ -252,16 +284,48 @@ class DoliDBSqlite3 extends DoliDB
 				$line = preg_replace('/(?:^|,)\s*\b(?:FULLTEXT|SPATIAL)\b\s+(?:(?:INDEX|KEY)\s+)?\w*\s*\([^)]+\)/i', '', $line);
 
 				// Remove inline INDEX definitions from CREATE TABLE (not supported in SQLite)
-				// Example: INDEX idx_fk_user (fk_user) or KEY idx_name (field)
+				// Example: INDEX idx_fk_user (fk_user), KEY idx_name (field), UNIQUE KEY uk_name (field)
 				// Word boundaries are required so column names ending with "_key" or
 				// "_index" (e.g. "import_key VARCHAR(14)") are not corrupted.
-				$line = preg_replace('/(?:^|,)\s*\b(?:INDEX|KEY)\b\s+\w+\s*\([^)]+\)/i', '', $line);
+				$line = preg_replace('/(?:^|,)\s*\b(?:UNIQUE\s+)?(?:INDEX|KEY)\b\s+\w+\s*\([^)]+\)/i', '', $line);
+				// Remove trailing commas that may result from removing index/key definitions
+				$line = preg_replace('/,\s*\)/', ')', $line);
+				$line = preg_replace('/,\s*$/', '', $line);
+				// Clean up double commas after INDEX/KEY removal
+				$line = preg_replace("/,\s*,/i", ",", $line);
+				$line = preg_replace("/\s*,\s*,/i", ",", $line);
 
-				// We remove end of requests "AFTER fieldxxx"
-				$line = preg_replace('/AFTER [a-z0-9_]+/i', '', $line);
+				// Remove CONSTRAINT clauses (FOREIGN KEY, PRIMARY KEY, UNIQUE, CHECK) - SQLite handles these differently
+				// Pattern: CONSTRAINT name FOREIGN KEY (col) REFERENCES table (col)
+				$line = preg_replace('/,\s*CONSTRAINT\s+\w+\s+FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+\w+\s*\([^)]+\)/i', '', $line);
+				// Also handle without leading comma
+				$line = preg_replace('/CONSTRAINT\s+\w+\s+FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+\w+\s*\([^)]+\)/i', '', $line);
+				// Remove CONSTRAINT PRIMARY KEY
+				$line = preg_replace('/,\s*CONSTRAINT\s+\w+\s+PRIMARY\s+KEY\s*\([^)]*\)/i', '', $line);
+				$line = preg_replace('/CONSTRAINT\s+\w+\s+PRIMARY\s+KEY\s*\([^)]*\)/i', '', $line);
+				// Remove CONSTRAINT UNIQUE
+				$line = preg_replace('/,\s*CONSTRAINT\s+\w+\s+UNIQUE\s*\([^)]*\)/i', '', $line);
+				$line = preg_replace('/CONSTRAINT\s+\w+\s+UNIQUE\s*\([^)]*\)/i', '', $line);
+				// Remove trailing commas again after CONSTRAINT removal
+				$line = preg_replace('/,\s*\)/', ')', $line);
+				$line = preg_replace('/,\s*$/', '', $line);
+				// Clean up double commas after CONSTRAINT removal
+				$line = preg_replace("/,\s*,/i", ",", $line);
+				$line = preg_replace("/\s*,\s*,/i", ",", $line);
 
-				// Remove inline COMMENT 'xxx' (not supported in SQLite)
-				$line = preg_replace('/\s+COMMENT\s+\'[^\']*\'/i', '', $line);
+				// Now remove redundant PRIMARY KEY clauses from CREATE TABLE (must be done after CONSTRAINT removal)
+				$line = preg_replace('/PRIMARY\s+KEY\s*\([^)]*\)/i', '', $line);
+				$line = preg_replace('/,\s*PRIMARY\s+KEY\s*\([^)]*\)/i', '', $line);
+				// Remove trailing commas after PRIMARY KEY removal
+				$line = preg_replace('/,\s*\)/', ')', $line);
+				$line = preg_replace('/,\s*$/', '', $line);
+				// Clean up double commas and other artifacts from removals
+				$line = preg_replace("/,\s*,/i", ",", $line);
+				$line = preg_replace("/\s*,\s*,/i", ",", $line);
+
+				// We remove end of requests "AFTER fieldxxx" (MySQL-specific, not supported by SQLite)
+				// Also handle the case where AFTER is followed by semicolon
+				$line = preg_replace('/AFTER [a-z0-9_]+\s*;?/i', '', $line);
 
 				// Remove column-level CHARACTER SET specifications (e.g. "varchar(20) CHARACTER SET utf8")
 				$line = preg_replace('/\s+CHARACTER\s+SET\s+[a-z0-9_]+/i', '', $line);
@@ -288,21 +352,26 @@ class DoliDBSqlite3 extends DoliDB
 				// We remove start of requests "ALTER TABLE tablexxx" if this is a DROP INDEX
 				$line = preg_replace('/ALTER TABLE [a-z0-9_]+ DROP INDEX/i', 'DROP INDEX', $line);
 
-				// Translate order to rename fields
+				// Translate query to rename fields
 				if (preg_match('/ALTER TABLE ([a-z0-9_]+) CHANGE(?: COLUMN)? ([a-z0-9_]+) ([a-z0-9_]+)(.*)$/i', $line, $reg)) {
 					$line = "-- ".$line." replaced by --\n";
 					$line .= "ALTER TABLE ".$reg[1]." RENAME COLUMN ".$reg[2]." TO ".$reg[3];
 				}
 
-				// Translate order to modify field format
+				// Translate query to modify field format
 				if (preg_match('/ALTER TABLE ([a-z0-9_]+) MODIFY(?: COLUMN)? ([a-z0-9_]+) (.*)$/i', $line, $reg)) {
 					$line = "-- ".$line." replaced by --\n";
 					$newreg3 = $reg[3];
+					// Remove backticks from column definition
+					$newreg3 = str_replace('`', '', $newreg3);
+					// Strip trailing semicolons from column definition
+					$newreg3 = rtrim($newreg3, ';');
 					$newreg3 = preg_replace('/ DEFAULT NULL/i', '', $newreg3);
 					$newreg3 = preg_replace('/ NOT NULL/i', '', $newreg3);
 					$newreg3 = preg_replace('/ NULL/i', '', $newreg3);
 					$newreg3 = preg_replace('/ DEFAULT 0/i', '', $newreg3);
 					$newreg3 = preg_replace('/ DEFAULT \'[0-9a-zA-Z_@]*\'/i', '', $newreg3);
+					$newreg3 = trim($newreg3);
 					$line .= "ALTER TABLE ".$reg[1]." ALTER COLUMN ".$reg[2]." TYPE ".$newreg3;
 					// TODO Add alter to set default value or null/not null if there is this in $reg[3]
 				}
@@ -314,11 +383,12 @@ class DoliDBSqlite3 extends DoliDB
 					$line .= "CREATE UNIQUE INDEX ".$reg[2]." ON ".$reg[1]."(".$reg[3];
 				}
 
-				// Translate order to drop foreign keys
+				// Translate query to drop foreign keys
 				// ALTER TABLE llx_dolibarr_modules DROP FOREIGN KEY fk_xxx;
+				// SQLite does not support DROP CONSTRAINT for foreign keys, so ignore this
 				if (preg_match('/ALTER\s+TABLE\s*(.*)\s*DROP\s+FOREIGN\s+KEY\s*(.*)$/i', $line, $reg)) {
 					$line = "-- ".$line." replaced by --\n";
-					$line .= "ALTER TABLE ".$reg[1]." DROP CONSTRAINT ".$reg[2];
+					$line .= "SELECT 0";  // No-op: SQLite cannot drop foreign key constraints via ALTER TABLE
 				}
 
 				// alter table add [unique] [index] (field1, field2 ...)
@@ -608,7 +678,7 @@ class DoliDBSqlite3 extends DoliDB
 	 *	@param	string	$query			SQL query string
 	 *	@param	int		$usesavepoint	0=Default mode, 1=Run a savepoint before and a rollbock to savepoint if error (this allow to have some request with errors inside global transactions).
 	 * 									Note that with Mysql, this parameter is not used as Myssql can already commit a transaction even if one request is in error, without using savepoints.
-	 *	@param  string	$type           Type of SQL order ('ddl' for insert, update, select, delete or 'dml' for create, alter...)
+	 *	@param  string	$type           Type of SQL query ('ddl' for insert, update, select, delete or 'dml' for create, alter...)
 	 *	@param	int		$result_mode	Result mode (not used with sqlite)
 	 *	@return	false|SQLite3Result		Resultset of answer
 	 */
@@ -619,13 +689,260 @@ class DoliDBSqlite3 extends DoliDB
 		$ret = false;
 
 		$query = trim($query);
+		$orgquery = $query;
 
 		$this->error = '';
+		// Debug logging for all queries during sqlite3 testing
+		if (preg_match('/^(ALTER|CREATE|DROP|INSERT|UPDATE|DELETE)/i', $query)) {
+			dol_syslog(get_class($this)."::query SQL: " . substr($query, 0, 200), LOG_DEBUG);
+		}
 
 		// Convert MySQL syntax to SQLite syntax
 		$reg = array();
-		if (preg_match('/ALTER\s+TABLE\s*(.*)\s*ADD\s+CONSTRAINT\s+(.*)\s*FOREIGN\s+KEY\s*\(([\w,\s]+)\)\s*REFERENCES\s+(\w+)\s*\(([\w,\s]+)\)/i', $query, $reg)) {
+		// Handle ALTER TABLE ... MODIFY COLUMN (MySQL) -> convert to ALTER COLUMN TYPE
+		// This is done here before convertSQLFromMysql to avoid comment lines
+		if (preg_match('/ALTER\s+TABLE\s+(\S+)\s+MODIFY(?:\s+COLUMN)?\s+(\S+)\s+(.+)/i', $query, $reg)) {
+			fwrite(STDERR, get_class($this).":: Converting MODIFY COLUMN to ALTER COLUMN TYPE: " . substr($query, 0, 200) . "\n");
+			// Remove backticks from table and column names
+			$tablename = trim(str_replace('`', '', $reg[1]));
+			$columnName = trim(str_replace('`', '', $reg[2]));
+			$columnDef = trim($reg[3]);
+			// Remove MySQL-specific modifiers
+			$columnDef = preg_replace('/ DEFAULT NULL/i', '', $columnDef);
+			$columnDef = preg_replace('/ NOT NULL/i', '', $columnDef);
+			$columnDef = preg_replace('/ NULL/i', '', $columnDef);
+			$columnDef = preg_replace('/ DEFAULT 0/i', '', $columnDef);
+			$columnDef = preg_replace('/ DEFAULT \'[0-9a-zA-Z_@]*\'/i', '', $columnDef);
+			// Remove backticks from column definition
+			$columnDef = str_replace('`', '', $columnDef);
+			// Strip trailing semicolons from column definition
+			$columnDef = rtrim($columnDef, ';');
+			// Clean up the column definition - just get the type
+			$columnDef = trim($columnDef);
+			// Now handle it as ALTER COLUMN TYPE
+			$query = "ALTER TABLE " . $tablename . " ALTER COLUMN " . $columnName . " TYPE " . $columnDef;
+			// Fall through to ALTER COLUMN TYPE handler below
+		}
+
+		// Handle ALTER TABLE ... ADD COLUMN
+		if (preg_match('/ALTER\s+TABLE\s+(\S+)\s+ADD\s+COLUMN\s+(.+)/i', $query, $reg)) {
+			fwrite(STDERR, get_class($this).":: Converting ALTER TABLE ADD COLUMN: " . substr($query, 0, 200) . "\n");
+			// Remove backticks from table name
+			$tablename = trim(str_replace('`', '', $reg[1]));
+			$columnDef = trim($reg[2]);
+			// Remove backticks and trailing semicolons from column definition
+			$columnDef = str_replace('`', '', $columnDef);
+			$columnDef = rtrim($columnDef, ';');
+			$columnDef = trim($columnDef);
+			// SQLite doesn't support ADD COLUMN, so we need to recreate the table
+			$descTable = $this->db->querySingle("SELECT sql FROM sqlite_master WHERE name='". $this->escape($tablename) . "'");
+			if ($descTable) {
+				// Parse the CREATE TABLE statement and add the new column
+				// Find the closing parenthesis
+				$pos = strrpos($descTable, ')');
+				if ($pos !== false) {
+					// Create new temporary table with the added column
+					$tmpTableName = 'tmp_' . $tablename;
+					$newDesc = substr($descTable, 0, $pos) . ', ' . $columnDef . substr($descTable, $pos);
+					// Replace the table name with the temporary name in the CREATE TABLE statement
+					$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+
+					// Start transaction for safety (note: DDL will auto-commit in SQLite)
+					$this->begin();
+
+					// Create new temporary table first (don't rename original yet)
+					$this->query($newDesc);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+
+					// Copy data from original table to new temporary table
+					// Get column names from old table (excluding the new column)
+					$oldColumns = $this->db->query("PRAGMA table_info(" . $tablename . ")");
+					$oldColumnList = [];
+					while ($col = $oldColumns->fetchArray(SQLITE3_ASSOC)) {
+						$oldColumnList[] = $col['name'];
+					}
+					if (!empty($oldColumnList)) {
+						$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+						if ($this->error) {
+							$this->rollback();
+							return $this->query("SELECT 0");
+						}
+					}
+
+					// Drop original table
+					$this->query("DROP TABLE " . $tablename);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+
+					// Rename new table to original name
+					$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+
+					// Commit transaction
+					$this->commit();
+					$query = "SELECT 0"; // dummy query
+				} else {
+					$query = "SELECT 0"; // dummy query if we can't parse
+				}
+			} else {
+				$query = "SELECT 0"; // dummy query if table doesn't exist
+			}
+		} elseif (preg_match('/ALTER\s+TABLE\s+(\S+)\s+DROP\s+COLUMN\s+(\S+)/i', $query, $reg)) {
+			// Handle ALTER TABLE ... DROP COLUMN
+			fwrite(STDERR, get_class($this).":: Converting ALTER TABLE DROP COLUMN: " . substr($query, 0, 200) . "\n");
+			$tablename = trim($reg[1]);
+			$columnName = trim($reg[2]);
+			$descTable = $this->db->querySingle("SELECT sql FROM sqlite_master WHERE name='". $this->escape($tablename) . "'");
+			if ($descTable) {
+				// Remove the column from the CREATE TABLE statement
+				// This is tricky - we need to parse and remove the column definition
+				// For now, use the rename approach: create new table without the column
+				$newDesc = preg_replace('/\s*,\s*' . preg_quote($columnName) . '\s+[^,)]+/', '', $descTable);
+				// Clean up double commas
+				$newDesc = preg_replace('/,\s*,/', ',', $newDesc);
+
+				// Create new temporary table first (don't rename original yet)
+				$tmpTableName = 'tmp_' . $tablename;
+				// Replace the table name with the temporary name in the CREATE TABLE statement
+				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+
+				// Start transaction for safety (note: DDL will auto-commit in SQLite)
+				$this->begin();
+
+				$this->query($newDesc);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Copy data (excluding the dropped column)
+				$oldColumns = $this->db->query("PRAGMA table_info(" . $tablename . ")");
+				$oldColumnList = [];
+				while ($col = $oldColumns->fetchArray(SQLITE3_ASSOC)) {
+					if ($col['name'] != $columnName) {
+						$oldColumnList[] = $col['name'];
+					}
+				}
+				if (!empty($oldColumnList)) {
+					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+				}
+
+				// Drop original table
+				$this->query("DROP TABLE " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Rename new table to original name
+				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Commit transaction
+				$this->commit();
+				$query = "SELECT 0"; // dummy query
+			} else {
+				$query = "SELECT 0"; // dummy query
+			}
+		} elseif (preg_match('/ALTER\s+TABLE\s+(\S+)\s+RENAME\s+COLUMN\s+(\S+)\s+TO\s+(\S+)/i', $query, $reg)) {
+			// Handle ALTER TABLE ... RENAME COLUMN (converted from CHANGE COLUMN)
+			// SQLite 3.25.0+ supports this natively, but handle it if needed
+			fwrite(STDERR, get_class($this).":: ALTER TABLE RENAME COLUMN: " . substr($query, 0, 200) . "\n");
+			// Just pass through to SQLite - it should handle it
+			// But if it fails, we'll catch it in the exception handler
+		} elseif (preg_match('/ALTER\s+TABLE\s+(\S+)\s+ALTER\s+COLUMN\s+(\S+)\s+TYPE\s+(.+)/i', $query, $reg)) {
+			// Handle ALTER TABLE ... ALTER COLUMN ... TYPE (converted from MODIFY COLUMN)
+			// SQLite3 doesn't support ALTER COLUMN TYPE directly in all versions
+			// Use the rename approach
+			fwrite(STDERR, get_class($this).":: Converting ALTER TABLE ALTER COLUMN TYPE: " . substr($query, 0, 200) . "\n");
+			// Remove backticks from table and column names
+			$tablename = trim(str_replace('`', '', $reg[1]));
+			$columnName = trim(str_replace('`', '', $reg[2]));
+			$newType = trim($reg[3]);
+			// Strip trailing semicolons from type
+			$newType = rtrim($newType, ';');
+			$newType = trim($newType);
+
+			$descTable = $this->db->querySingle("SELECT sql FROM sqlite_master WHERE name='". $this->escape($tablename) . "'");
+			if ($descTable) {
+				// Parse and modify the column type
+				// We need to find the column definition and replace its type
+				// The pattern is: column_name followed by type (which may contain spaces and parentheses)
+				// up to a comma or closing parenthesis
+				// Use a more robust approach: split the CREATE TABLE into parts
+				$newDesc = $descTable;
+				// Find the column name in the CREATE TABLE statement
+				// and replace everything after it until the next comma or closing paren
+				$pattern = '/(\b' . preg_quote($columnName) . '\b)(\s+[^,)]+)/i';
+				$newDesc = preg_replace($pattern, '\1 ' . $newType, $newDesc);
+
+				// Create new temporary table first (don't rename original yet)
+				$tmpTableName = 'tmp_' . $tablename;
+				// Replace the table name with the temporary name in the CREATE TABLE statement
+				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
+
+				// Start transaction for safety (note: DDL will auto-commit in SQLite)
+				$this->begin();
+
+				$this->query($newDesc);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Copy data (all columns should match since we only changed the type)
+				$oldColumns = $this->db->query("PRAGMA table_info(" . $tablename . ")");
+				$oldColumnList = [];
+				while ($col = $oldColumns->fetchArray(SQLITE3_ASSOC)) {
+					$oldColumnList[] = $col['name'];
+				}
+				if (!empty($oldColumnList)) {
+					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+				}
+
+				// Drop original table
+				$this->query("DROP TABLE " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Rename new table to original name
+				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
+
+				// Commit transaction
+				$this->commit();
+				$query = "SELECT 0"; // dummy query
+			} else {
+				fwrite(STDERR, get_class($this).":: ALTER COLUMN TYPE failed - table doesn't exist: " . $tablename . "\n");
+				$query = "SELECT 0"; // dummy query
+			}
+		} elseif (preg_match('/ALTER\s+TABLE\s*(.*)\s*ADD\s+CONSTRAINT\s+(.*)\s*FOREIGN\s+KEY\s*\(([\w,\s]+)\)\s*REFERENCES\s+(\w+)\s*\(([\w,\s]+)\)/i', $query, $reg)) {
 			// Adding a foreign key to the table
+			fwrite(STDERR, get_class($this).":: Converting ALTER TABLE ADD CONSTRAINT FOREIGN KEY: " . substr($query, 0, 200) . "\n");
 			// table replacement procedure to add the constraint
 			// Example : ALTER TABLE llx_adherent ADD CONSTRAINT adherent_fk_soc FOREIGN KEY (fk_soc) REFERENCES llx_societe (rowid)
 			// -> CREATE TABLE ( ... ,CONSTRAINT adherent_fk_soc FOREIGN KEY (fk_soc) REFERENCES llx_societe (rowid))
@@ -636,30 +953,62 @@ class DoliDBSqlite3 extends DoliDB
 			$tablename = trim($reg[1]);
 
 			$descTable = $this->db->querySingle("SELECT sql FROM sqlite_master WHERE name='".$this->escape($tablename)."'");
+			if ($descTable) {
+				// Create new temporary table first (don't rename original yet)
+				$tmpTableName = 'tmp_' . $tablename;
 
-			// 1- Rename the table to a temporary name
-			$this->query("ALTER TABLE ".$tablename." RENAME TO tmp_".$tablename);
+				// Adjust the SQL request to add the constraint
+				$newDesc = substr($descTable, 0, strlen($descTable) - 1);
+				$newDesc .= ", CONSTRAINT ".$constraintname." FOREIGN KEY (".$localfields.") REFERENCES ".$foreignTable."(".$foreignFields.")";
+				// Add closing parenthesis for SQL query
+				$newDesc .= ')';
+				// Replace the table name with the temporary name in the CREATE TABLE statement
+				$newDesc = preg_replace('/\b' . preg_quote($tablename) . '\b/', $tmpTableName, $newDesc, 1);
 
-			// 2- Recreate the table with the new constraint
+				// Start transaction for safety (note: DDL will auto-commit in SQLite)
+				$this->begin();
 
-			// Adjust the SQL request to add the constraint
-			$descTable = substr($descTable, 0, strlen($descTable) - 1);
-			$descTable .= ", CONSTRAINT ".$constraintname." FOREIGN KEY (".$localfields.") REFERENCES ".$foreignTable."(".$foreignFields.")";
+				// Create new table with constraint first
+				$this->query($newDesc);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
 
-			// Add closing parenthesis for SQL query
-			$descTable .= ')';
+				// Copy data from original table to new temporary table
+				$oldColumns = $this->db->query("PRAGMA table_info(" . $tablename . ")");
+				$oldColumnList = [];
+				while ($col = $oldColumns->fetchArray(SQLITE3_ASSOC)) {
+					$oldColumnList[] = $col['name'];
+				}
+				if (!empty($oldColumnList)) {
+					$this->query("INSERT INTO " . $tmpTableName . " (" . implode(',', $oldColumnList) . ") SELECT " . implode(',', $oldColumnList) . " FROM " . $tablename);
+					if ($this->error) {
+						$this->rollback();
+						return $this->query("SELECT 0");
+					}
+				}
 
-			// Perform query to create the table
-			$this->query($descTable);
+				// Drop original table
+				$this->query("DROP TABLE " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
 
-			// 3- Copy the data from the temporary table (before adding constraint)
-			$this->query("INSERT INTO ".$tablename." SELECT * FROM tmp_".$tablename);
+				// Rename new table to original name
+				$this->query("ALTER TABLE " . $tmpTableName . " RENAME TO " . $tablename);
+				if ($this->error) {
+					$this->rollback();
+					return $this->query("SELECT 0");
+				}
 
-			// 4- Delete the original (now temporary) table
-			$this->query("DROP TABLE tmp_".$tablename);
-
-			// dummy statement
-			$query = "SELECT 0";
+				// Commit transaction
+				$this->commit();
+				$query = "SELECT 0"; // dummy query
+			} else {
+				$query = "SELECT 0"; // dummy query if table doesn't exist
+			}
 		} else {
 			$query = $this->convertSQLFromMysql($query, $type);
 		}
@@ -682,19 +1031,29 @@ class DoliDBSqlite3 extends DoliDB
 			}
 		}
 
-		// Ordre SQL ne necessitant pas de connection a une base (example: CREATE DATABASE)
+		// SQL query not requiring a connection to a database (example: CREATE DATABASE)
 		try {
 			//$ret = $this->db->exec($query);
 			$ret = $this->db->query($query); // $ret is a Sqlite3Result
 			if ($ret) {
 				$this->queryStrings[spl_object_id($ret)] = $query;
+			} else {
+				if (defined("STDERR")) {
+					fwrite(STDERR, " ORG SQL: $orgquery\n NEW SQL: $query\n");
+				}
 			}
 		} catch (Exception $e) {
 			$this->error = $this->db->lastErrorMsg();
+			// Add debug logging and print to stderr for failing queries
+			$error_msg = get_class($this)."::query FAILED with error: " . $this->error . " for query: " . substr($query, 0, 500);
+			dol_syslog($error_msg, LOG_WARNING);
+			if (defined("STDERR")) {
+				fwrite(STDERR, $error_msg . "SQL: $query\n");
+			}
 		}
 
 		if (!preg_match("/^COMMIT/i", $query) && !preg_match("/^ROLLBACK/i", $query)) {
-			// Si requete utilisateur, on la sauvegarde ainsi que son resultset
+			// If user query, save it along with its resultset
 			if (!is_object($ret) || $this->error) {
 				$this->lastqueryerror = $query;
 				$this->lasterror = $this->error();
@@ -724,7 +1083,7 @@ class DoliDBSqlite3 extends DoliDB
 	/**
 	 * 	Returns the current line (as an object) for the resultset cursor
 	 *
-	 *	@param	SQLite3Result	$resultset  Curseur de la requete voulue
+	 *	@param	SQLite3Result	$resultset  Cursor of the desired query
 	 *	@return	false|object				Object result line or false if KO or end of cursor
 	 */
 	public function fetch_object($resultset)
@@ -892,7 +1251,7 @@ class DoliDBSqlite3 extends DoliDB
 	}
 
 	/**
-	 *	Renvoie le code erreur generique de l'operation precedente.
+	 *	Return the generic error code of the previous operation.
 	 *
 	 *	@return	string		Error code (Examples: DB_ERROR_TABLE_ALREADY_EXISTS, DB_ERROR_RECORD_ALREADY_EXISTS...)
 	 */
@@ -961,7 +1320,7 @@ class DoliDBSqlite3 extends DoliDB
 	}
 
 	/**
-	 *	Renvoie le texte de l'erreur mysql de l'operation precedente.
+	 *	Return the text of the mysql error of the previous operation.
 	 *
 	 *	@return	string	Error text
 	 */
@@ -1191,13 +1550,13 @@ class DoliDBSqlite3 extends DoliDB
 	/**
 	 *	Create a table into database
 	 *
-	 *	@param	    string	$table 			Nom de la table
-	 *	@param	    array<string,array{type:string,label?:string,enabled?:int<0,2>|string,position?:int,notnull?:int,visible?:int<-2,5>|string,alwayseditable?:int<0,1>,noteditable?:int<0,1>,default?:string,index?:int,foreignkey?:string,searchall?:int<0,1>,isameasure?:int<0,1>,css?:string,csslist?:string,help?:string,showoncombobox?:int<0,2>,disabled?:int<0,1>,arrayofkeyval?:array<int|string,string>,autofocusoncreate?:int<0,1>,comment?:string,copytoclipboard?:int<1,2>,validate?:int<0,1>,value?:string,attribute?:string,null?:string,extra?:string}>	$fields 		Tableau associatif [nom champ][tableau des descriptions]
-	 *	@param	    string	$primary_key 	Nom du champ qui sera la clef primaire
-	 *	@param	    string	$type 			Type de la table
-	 *	@param	    ?array<string,mixed>	$unique_keys 	Tableau associatifs Nom de champs qui seront clef unique => valeur
-	 *	@param	    string[]	$fulltext_keys	Tableau des Nom de champs qui seront indexes en fulltext
-	 *	@param	    array<string,mixed>	$keys 			Tableau des champs cles noms => valeur
+	 *	@param	    string	$table 			Table name
+	 *	@param	    array<string,array{type:string,label?:string,enabled?:int<0,2>|string,position?:int,notnull?:int,visible?:int<-2,5>|string,alwayseditable?:int<0,1>,noteditable?:int<0,1>,default?:string,index?:int,foreignkey?:string,searchall?:int<0,1>,isameasure?:int<0,1>,css?:string,csslist?:string,help?:string,showoncombobox?:int<0,2>,disabled?:int<0,1>,arrayofkeyval?:array<int|string,string>,autofocusoncreate?:int<0,1>,comment?:string,copytoclipboard?:int<1,2>,validate?:int<0,1>,value?:string,attribute?:string,null?:string,extra?:string}>	$fields 		Associative array [field name][array of descriptions]
+	 *	@param	    string	$primary_key 	Name of the field that will be the primary key
+	 *	@param	    string	$type 			Table type
+	 *	@param	    ?array<string,mixed>	$unique_keys 	Associative array Field names that will be unique key => value
+	 *	@param	    string[]	$fulltext_keys	Array of field names that will be indexed in fulltext
+	 *	@param	    array<string,mixed>	$keys 			Array of key fields names => value
 	 *	@return	    int						Return integer <0 if KO, >=0 if OK
 	 */
 	public function DDLCreateTable($table, $fields, $primary_key, $type, $unique_keys = null, $fulltext_keys = null, $keys = null)
@@ -1337,7 +1696,7 @@ class DoliDBSqlite3 extends DoliDB
 	public function DDLAddField($table, $field_name, $field_desc, $field_position = "")
 	{
 		// phpcs:enable
-		// cles recherchees dans le tableau des descriptions (field_desc) : type,value,attribute,null,default,extra
+		// keys searched in the descriptions array (field_desc): type,value,attribute,null,default,extra
 		// ex. : $field_desc = array('type'=>'int','value'=>'11','null'=>'not null','extra'=> 'auto_increment');
 		$sql = "ALTER TABLE ".$this->sanitize($table)." ADD ".$this->sanitize($field_name)." ";
 
@@ -1439,9 +1798,9 @@ class DoliDBSqlite3 extends DoliDB
 	/**
 	 * 	Create a user and privileges to connect to database (even if database does not exists yet)
 	 *
-	 *	@param	string	$dolibarr_main_db_host 		Ip serveur
-	 *	@param	string	$dolibarr_main_db_user 		Nom user a creer
-	 *	@param	string	$dolibarr_main_db_pass 		Password user a creer
+	 *	@param	string	$dolibarr_main_db_host 		IP server
+	 *	@param	string	$dolibarr_main_db_user 		User name to create
+	 *	@param	string	$dolibarr_main_db_pass 		Password user to create
 	 *	@param	string	$dolibarr_main_db_name		Database name where user must be granted
 	 *	@return	int									Return integer <0 if KO, >=0 if OK
 	 */
@@ -1596,7 +1955,7 @@ class DoliDBSqlite3 extends DoliDB
 			);
 		}
 
-		// TODO prendre en compte le filtre
+		// TODO Account for the $filter parameter
 		foreach ($pragmas as $var) {
 			$sql = "PRAGMA $var";
 			$resql = $this->query($sql);
@@ -2130,8 +2489,8 @@ class DoliDBSqlite3 extends DoliDB
 		} else {
 			$num -= floor(($month * 4 + 23) / 10);
 		}
-			$temp = floor(($y / 100 + 1) * 3 / 4);
-			return $num + floor($y / 4) - $temp;
+		$temp = floor(($y / 100 + 1) * 3 / 4);
+		return $num + floor($y / 4) - $temp;
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
