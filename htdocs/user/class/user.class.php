@@ -76,12 +76,7 @@ class User extends CommonObject
 	 */
 	public $id = 0;
 
-	/**
-	 * @var int
-	 * @deprecated Use $status
-	 * @see $status
-	 */
-	public $statut;
+
 
 	/**
 	 * @var int
