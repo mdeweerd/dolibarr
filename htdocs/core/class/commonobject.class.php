@@ -340,7 +340,12 @@ abstract class CommonObject
 	 */
 	public $fk_project;
 
-
+	/**
+	 * @var int
+	 * @deprecated  	Use $fk_project instead.
+	 * @see $fk_project
+	 */
+	// public $fk_projet;
 
 	/**
 	 * @var Contact|null 	A related contact object
@@ -402,8 +407,29 @@ abstract class CommonObject
 	 */
 	public $origin;
 
+	/**
+	 * TODO Remove this. Has been replaced with ->origin_object.
+	 * This is set by fetch_origin() from this->origin and this->origin_id
+	 *
+	 * @var CommonObject
+	 * @deprecated Use $origin_object instead.
+	 * @see $origin_object
+	 */
+	// private $expedition;
 
+	/**
+	 * @var CommonObject
+	 * @deprecated Use $origin_object instead.
+	 * @see $origin_object
+	 */
+	// private $livraison;
 
+	/**
+	 * @var CommonObject
+	 * @deprecated Use $origin_object instead.
+	 * @see $origin_object
+	 */
+	// private $commandeFournisseur;
 
 	/**
 	 * @var ?string 		The object's reference
@@ -424,6 +450,14 @@ abstract class CommonObject
 	 * @var string 		The object's next reference
 	 */
 	public $ref_next;
+
+	/**
+	 * @var null|int|array<int, string>      The object's status. Use status instead.
+	 * @deprecated  Use $status instead.
+	 * @see $status
+	 * @see setStatut(), $status
+	 */
+	// public $statut;
 
 	/**
 	 * @var ?string 		Ref to store on object to save the new ref to use for example when making a validate() of an object
@@ -821,6 +855,12 @@ abstract class CommonObject
 
 
 
+
+	/**
+	 * @var	?float			Amount already paid from getSommePaiement() + getSumCreditNotesUsed() + getSumDepositsUsed() (used to show correct status)
+	 * @see $totalpaid
+	 */
+	// public $alreadypaid;
 
 	/**
 	 * @var	?float			Amount already paid from getSommePaiement()
