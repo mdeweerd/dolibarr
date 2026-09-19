@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2024-2025	MDW							<mdeweerd@users.noreply.github.com>
+/* Copyright (C) 2024-2026	MDW							<mdeweerd@users.noreply.github.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -269,5 +269,44 @@ trait DolDeprecationHandler
 			}
 		}
 		return $msg;
+	}
+
+	/**
+	 * Verify that deprecated properties and methods have been removed
+	 * This is called automatically in test environments via __destruct
+	 *
+	 * @return void
+	 */
+	protected function verifyDeprecatedItemsRemoved()
+	{
+		// Check deprecated properties
+		$deprecatedProperties = $this->deprecatedProperties();
+		foreach ($deprecatedProperties as $oldProperty => $newProperty) {
+			if (property_exists($this, $oldProperty)) {
+				trigger_error("DolDeprecationHandler: Old property '$oldProperty' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.", E_USER_ERROR);
+			}
+		}
+
+		// Check deprecated methods
+		$deprecatedMethods = $this->deprecatedMethods();
+		foreach ($deprecatedMethods as $oldMethod => $newMethod) {
+			if (method_exists($this, $oldMethod)) {
+				trigger_error("DolDeprecationHandler: Old method '$oldMethod' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.", E_USER_ERROR);
+			}
+		}
+	}
+
+	/**
+	 * Destructor that verifies deprecated properties and methods have been removed
+	 * This verification only runs in test environments
+	 *
+	 * @return void
+	 */
+	public function __destruct()
+	{
+		// Only verify in test environment
+		if (class_exists('PHPUnit\Framework\TestSuite')) {
+			$this->verifyDeprecatedItemsRemoved();
+		}
 	}
 }
