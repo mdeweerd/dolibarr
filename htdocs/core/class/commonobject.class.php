@@ -340,12 +340,7 @@ abstract class CommonObject
 	 */
 	public $fk_project;
 
-	/**
-	 * @var int
-	 * @deprecated  		Use $fk_project instead.
-	 * @see $fk_project
-	 */
-	public $fk_projet;
+
 
 	/**
 	 * @var Contact|null 	A related contact object
@@ -407,29 +402,7 @@ abstract class CommonObject
 	 */
 	public $origin;
 
-	/**
-	 * TODO Remove this. Has been replaced with ->origin_object.
-	 * This is set by fetch_origin() from this->origin and this->origin_id
-	 *
-	 * @var CommonObject
-	 * @deprecated Use $origin_object instead.
-	 * @see $origin_object
-	 */
-	private $expedition;
 
-	/**
-	 * @var CommonObject
-	 * @deprecated Use $origin_object instead.
-	 * @see $origin_object
-	 */
-	private $livraison;
-
-	/**
-	 * @var CommonObject
-	 * @deprecated Use $origin_object instead.
-	 * @see $origin_object
-	 */
-	private $commandeFournisseur;
 
 
 	/**
@@ -457,13 +430,7 @@ abstract class CommonObject
 	 */
 	public $newref;
 
-	/**
-	 * @var null|int|array<int, string>      The object's status. Use status instead.
-	 * @deprecated  Use $status instead.
-	 * @see $status
-	 * @see setStatut(), $status
-	 */
-	public $statut;
+
 
 	/**
 	 * @var null|int|array<int, string>   The object's status (an int).
@@ -853,11 +820,7 @@ abstract class CommonObject
 	public $sendtoid;
 
 
-	/**
-	 * @var	?float			Amount already paid from getSommePaiement() + getSumCreditNotesUsed() + getSumDepositsUsed() (used to show correct status)
-	 * @see $totalpaid
-	 */
-	public $alreadypaid;
+
 
 	/**
 	 * @var	?float			Amount already paid from getSommePaiement()
