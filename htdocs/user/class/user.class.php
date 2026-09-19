@@ -83,7 +83,7 @@ class User extends CommonObject
 	 */
 	public $status;
 
-	/**
+	/*
 	 * @var int
 	 * @deprecated Use $status
 	 * @see $status

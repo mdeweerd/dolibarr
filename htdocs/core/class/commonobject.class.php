@@ -340,7 +340,7 @@ abstract class CommonObject
 	 */
 	public $fk_project;
 
-	/**
+	/*
 	 * @var int
 	 * @deprecated  	Use $fk_project instead.
 	 * @see $fk_project
@@ -417,14 +417,14 @@ abstract class CommonObject
 	 */
 	// private $expedition;
 
-	/**
+	/*
 	 * @var CommonObject
 	 * @deprecated Use $origin_object instead.
 	 * @see $origin_object
 	 */
 	// private $livraison;
 
-	/**
+	/*
 	 * @var CommonObject
 	 * @deprecated Use $origin_object instead.
 	 * @see $origin_object
@@ -451,7 +451,7 @@ abstract class CommonObject
 	 */
 	public $ref_next;
 
-	/**
+	/*
 	 * @var null|int|array<int, string>      The object's status. Use status instead.
 	 * @deprecated  Use $status instead.
 	 * @see $status
@@ -856,7 +856,7 @@ abstract class CommonObject
 
 
 
-	/**
+	/*
 	 * @var	?float			Amount already paid from getSommePaiement() + getSumCreditNotesUsed() + getSumDepositsUsed() (used to show correct status)
 	 * @see $totalpaid
 	 */
