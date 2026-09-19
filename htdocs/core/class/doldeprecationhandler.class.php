@@ -283,7 +283,8 @@ trait DolDeprecationHandler
 		$deprecatedProperties = $this->deprecatedProperties();
 		foreach ($deprecatedProperties as $oldProperty => $newProperty) {
 			if (property_exists($this, $oldProperty)) {
-				trigger_error("DolDeprecationHandler: Old property '$oldProperty' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.", E_USER_ERROR);
+				// Use Exception instead of trigger_error with E_USER_ERROR (deprecated in PHP 8.4)
+				throw new Exception("DolDeprecationHandler: Old property '$oldProperty' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.");
 			}
 		}
 
@@ -291,7 +292,8 @@ trait DolDeprecationHandler
 		$deprecatedMethods = $this->deprecatedMethods();
 		foreach ($deprecatedMethods as $oldMethod => $newMethod) {
 			if (method_exists($this, $oldMethod)) {
-				trigger_error("DolDeprecationHandler: Old method '$oldMethod' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.", E_USER_ERROR);
+				// Use Exception instead of trigger_error with E_USER_ERROR (deprecated in PHP 8.4)
+				throw new Exception("DolDeprecationHandler: Old method '$oldMethod' still exists on class " . get_class($this) . ". It should be removed since it is mapped as deprecated.");
 			}
 		}
 	}

@@ -426,9 +426,9 @@ class DolDeprecationHandlerTest extends CommonClassTest
 			}
 		};
 
-		// Expect the error
-		$this->expectError();
-		$this->expectErrorMessage("Old property 'oldPropertyThatExists' still exists");
+		// Expect the exception (changed from expectError to expectException due to PHP 8.4 deprecation)
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage("Old property 'oldPropertyThatExists' still exists");
 
 		// Call the verification method directly
 		$badHandler->testVerifyDeprecatedItemsRemoved();
@@ -498,9 +498,9 @@ class DolDeprecationHandlerTest extends CommonClassTest
 			}
 		};
 
-		// Expect the error
-		$this->expectError();
-		$this->expectErrorMessage("Old method 'oldMethodThatExists' still exists");
+		// Expect the exception (changed from expectError to expectException due to PHP 8.4 deprecation)
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage("Old method 'oldMethodThatExists' still exists");
 
 		// Call the verification method directly
 		$badHandler->testVerifyDeprecatedItemsRemoved();
