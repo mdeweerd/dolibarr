@@ -83,7 +83,7 @@ class User extends CommonObject
 	 */
 	public $status;
 
-	/*
+	/* @phan-suppress-current-line PhanPluginPHPDocInWrongComment
 	 * @var int
 	 * @deprecated Use $status
 	 * @see $status

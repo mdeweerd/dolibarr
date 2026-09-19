@@ -905,7 +905,7 @@ class Societe extends CommonObject
 	 */
 	public $bank_account;
 
-	/*
+	/* @phan-suppress-current-line PhanPluginPHPDocInWrongComment
 	 * @deprecated
 	 * Accounting code for client
 	 * @var ?string
