@@ -173,7 +173,8 @@ trait DolDeprecationHandler
 				trigger_error("Replacement method '".$newMethod."' not implemented.", E_USER_NOTICE);
 			}
 		}
-		trigger_error("Call to undefined method '".$name."'.".self::getCallerInfoString(), E_USER_ERROR);
+		// Use Exception instead of trigger_error with E_USER_ERROR (deprecated in PHP 8.4)
+		throw new Exception("Call to undefined method '".$name."'.".self::getCallerInfoString());
 	}
 
 
